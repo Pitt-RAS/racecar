@@ -6,38 +6,37 @@
           name: docker.io
           state: present
 
-    - name: Add ubuntu group
+    - name: Add ras group
       group:
-          name: ubuntu
+          name: ras
           state: present
 
-    - name: Add ubuntu user
+    - name: Add ras user
       user:
-          name: ubuntu
-          # Password is ubuntu
-          password: $6$AsWpNjXx$qdl9iwz9rvyPlBesZThyyB7BKIO7QxVLnLBuZk.U3MozfNj47ajo0YWp8w8poYVt17n.TbWJfYqsKDxF7WJOQ1
-          group: ubuntu
-          groups: docker
+          name: ras
+          password: "{{ 'ras' | password_hash('sha512') }}"
+          group: ras
+          groups: docker, sudo
           create_home: yes
           shell: /bin/bash
           state: present
 
     - name: Add SSH keys
       authorized_key:
-          user: ubuntu
+          user: ras
           state: present
           key: "{{ lookup('file', 'authorized_keys') }}"
+
+    - name: Add ROS apt key
+      apt_key:
+          keyserver: ha.pool.sks-keyservers.net
+          id: 421C365BD9FF1F717815A3895523BAEEB01FA116
 
     - name: Add ROS apt repo
       apt_repository:
           state: present
           filename: ros-latest
           repo: deb http://packages.ros.org/ros/ubuntu bionic main
-
-    - name: Add ROS apt key
-      apt_key:
-          keyserver: ha.pool.sks-keyservers.net
-          id: 421C365BD9FF1F717815A3895523BAEEB01FA116
 
     - name: Install ROS
       apt:

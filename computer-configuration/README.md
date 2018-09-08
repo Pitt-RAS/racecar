@@ -1,6 +1,6 @@
 # Computer Configuration
 
-This folder holds Ansible 'configuration as code' for configuring the on-board computers for Magellan. Currently there is only one computer, which has its configuration in `main_computer.yml`.
+This folder holds Ansible 'configuration as code' for configuring the on-board computers for Magellan. Currently there is only one computer, which has its configuration in `main-compute.yml`.
 
 ## SSH Access to the Robot
 
@@ -12,10 +12,10 @@ Assuming you've started with a fresh Ubuntu 18.04 install:
 
 ### On The Robot
 
-Edit `main_computer.yml` changing `hosts: all` to `hosts: localhost`
+Edit `main-compute.yml` changing `hosts: all` to `hosts: localhost`
 ```bash
 sudo apt install ansible
-ansible-playbook main_computer.yml
+ansible-playbook main-compute.yml
 ```
 
 ### From Your Laptop
@@ -23,5 +23,5 @@ Where `10.0.0.2` is the IP of the robot and `ubuntu` is the name of the user to 
 
 ```bash
 sudo apt install ansible
-ansible-playbook -i 10.0.0.2 -u ubuntu -k -b root -K main_computer.yml
+ansible-playbook -i 192.168.1.22, -u ras -k -K main-compute.yml
 ```
