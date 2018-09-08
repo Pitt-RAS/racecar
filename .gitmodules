@@ -1,0 +1,4 @@
+[submodule "src/ext_deps/rosserial"]
+	path = src/ext_deps/rosserial
+	url = https://github.com/ros-drivers/rosserial.git
+	shallow = true

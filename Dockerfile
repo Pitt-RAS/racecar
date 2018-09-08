@@ -1,8 +1,8 @@
-FROM ros:melodic-robot
+FROM pittras/magellan-2018-base:8
 
-# Add known dependencies here to cache them
-RUN apt-get update
-RUN apt-get install -y ros-melodic-robot-localization
+# Add known ROS dependencies to the pittras/magellan-2018-docker-base repo
+# This avoids rosdep redownloading them
+# Remember to update the base image for this Dockerfile when you make changes!
 
 COPY . /robot
 WORKDIR /robot
