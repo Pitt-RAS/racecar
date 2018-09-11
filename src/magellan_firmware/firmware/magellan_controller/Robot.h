@@ -7,6 +7,7 @@
 #include "config.h"
 #include <ros.h>
 #include "HeartbeatLED.h"
+#include "PWM.h"
 
 class Robot {
 public:
@@ -26,6 +27,8 @@ private:
     ros::NodeHandle& nh_;
     TransmitterInterface transmitter_;
     HeartbeatLED heartbeat_;
+    PWM throttle_pwm_;
+    PWM steering_pwm_;
 };
 
 #endif

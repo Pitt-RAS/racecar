@@ -4,7 +4,9 @@ Robot::Robot(ros::NodeHandle& nh) :
     current_state_(MODE_DISABLED),
     nh_(nh),
     transmitter_(nh),
-    heartbeat_() {
+    heartbeat_(),
+    throttle_pwm_(ESC_PWM),
+    steering_pwm_(SERVO_PWM) {
 }
 
 void Robot::TeleopInit() {
