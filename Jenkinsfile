@@ -10,6 +10,7 @@ node {
     stage('Test') {
         image.inside {
             sh '''
+            . /opt/magellan-deps/devel/setup.sh
             . /robot/devel/setup.sh
             catkin_make
             catkin_make run_tests
@@ -19,6 +20,7 @@ node {
     stage('Build Teensy') {
         image.inside {
             sh '''
+            . /opt/magellan-deps/devel/setup.sh
             . /robot/devel/setup.sh
             rosrun rosserial_arduino make_libraries.py /root/Arduino/libraries/
             /robot/src/magellan_firmware/compile.sh
