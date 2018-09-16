@@ -8,9 +8,11 @@ public:
     PWM(int pin);
     void Set(double speed);
     void ConfigLimit(double limit);
+    void ConfigOffset(double offset);
 private:
     Servo pwm_;
     double limit_;
+    double offset_;
 };
 
 #endif

@@ -7,6 +7,9 @@ Robot::Robot(ros::NodeHandle& nh) :
     heartbeat_(),
     throttle_pwm_(ESC_PWM),
     steering_pwm_(SERVO_PWM) {
+        steering_pwm_.ConfigOffset(STEERING_OFFSET);
+
+        DisabledInit();
 }
 
 void Robot::TeleopInit() {
@@ -15,7 +18,7 @@ void Robot::TeleopInit() {
 void Robot::TeleopPeriodic() {
     // Get the throttle percent from the Transmitter Interface
     double throttle_percent_ = transmitter_.throttle_percent();
-    
+
     //Pass it to PWM
     throttle_pwm_.Set(throttle_percent_);
 
@@ -33,6 +36,8 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::DisabledInit() {
+    steering_pwm_.Set(0.0);
+    throttle_pwm_.Set(0.0);
 }
 
 void Robot::DisabledPeriodic() {
