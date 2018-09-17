@@ -6,7 +6,7 @@ then
     exit 1
 fi
 
-pushd $(dirname $0)
+pushd $(dirname $0) > /dev/null
 
 ${ARDUINO_PATH}/arduino-builder \
     -compile \
@@ -20,4 +20,4 @@ ${ARDUINO_PATH}/arduino-builder \
     -verbose \
     firmware/magellan_controller/magellan_controller.ino
 
-popd
+popd > /dev/null
