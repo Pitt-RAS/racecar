@@ -1,0 +1,4 @@
+<launch>
+    <node name="magellan_gameplay" pkg="magellan_gameplay" type="game.py" />
+</launch>
+

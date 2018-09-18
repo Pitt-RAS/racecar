@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find magellan_gameplay)/launch/main.launch">
+    </include>
+</launch>
+
