@@ -3,13 +3,18 @@
 
 PWM::PWM(int pin) {
     pwm_.attach(pin);
-    ConfigLimit(1);
+    ConfigHighLimit(1);
+    ConfigLowLimit(0);
     ConfigOffset(0);
     Set(0);
 }
 
-void PWM::ConfigLimit(double limit) {
-    limit_ = limit;
+void PWM::ConfigHighLimit(double limit) {
+    high_limit_ = limit;
+}
+
+void PWM::ConfigLowLimit(double limit) {
+    low_limit_ = limit;
 }
 
 void PWM::ConfigOffset(double offset) {
@@ -17,10 +22,17 @@ void PWM::ConfigOffset(double offset) {
 }
 
 void PWM::Set(double speed) {
+    if ( fabs(speed) > high_limit_ )
+        speed = high_limit_;
+    else if ( fabs(speed) < low_limit_ )
+        speed = 0;
+
     speed += offset_;
+
+    // Force bounds to valid PWM range
     if ( fabs(speed) > 1 )
         speed = copysign(1, speed);
-    speed *= limit_;
+
     speed *= 500;
     speed += 1500;
 

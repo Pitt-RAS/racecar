@@ -7,11 +7,13 @@ class PWM {
 public:
     PWM(int pin);
     void Set(double speed);
-    void ConfigLimit(double limit);
+    void ConfigHighLimit(double limit);
+    void ConfigLowLimit(double limit);
     void ConfigOffset(double offset);
 private:
     Servo pwm_;
-    double limit_;
+    double low_limit_;
+    double high_limit_;
     double offset_;
 };
 

@@ -20,11 +20,14 @@ extern RobotState currentState;
 #define XBEE_LOOP_HZ 3
 #define DEBUG_LOOP_HZ 5
 
-
 #define ESC_PWM 3 // Throttle
 #define SERVO_PWM 4
 
+
 // Steering trim
 #define STEERING_OFFSET -0.2
+
+#define THROTTLE_MIN 0.1
+#define STEERING_MIN 0.05
 
 #endif

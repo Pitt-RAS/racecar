@@ -8,6 +8,8 @@ Robot::Robot(ros::NodeHandle& nh) :
     throttle_pwm_(ESC_PWM),
     steering_pwm_(SERVO_PWM) {
         steering_pwm_.ConfigOffset(STEERING_OFFSET);
+        throttle_pwm_.ConfigLowLimit(THROTTLE_MIN);
+        steering_pwm_.ConfigLowLimit(STEERING_MIN);
 
         DisabledInit();
 }
