@@ -52,7 +52,26 @@ case $1 in
         $0 start
     ;;
 
+    deploy-teensy)
+        docker build -t ${IMAGE_NAME}:teensy .
+
+        docker run \
+            -it \
+            --privileged \
+            --rm \
+            --net host \
+            -v /dev/bus/usb:/dev/bus/usb \
+            ${IMAGE_NAME}:teensy \
+            /robot/src/magellan_firmware/download.sh
+
+        docker rmi ${IMAGE_NAME}:teensy
+    ;;
+
+    ssh)
+        ssh ras@${ROBOT_IP}
+    ;;
+
     *)
-        echo "Usage: robot.sh [start|stop|deploy|watch]"
+        echo "Usage: robot.sh [start|stop|deploy|watch|deploy-teensy|ssh]"
     ;;
 esac
