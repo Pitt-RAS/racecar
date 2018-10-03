@@ -8,6 +8,7 @@
 #include <ros.h>
 #include "HeartbeatLED.h"
 #include "PWM.h"
+#include <std_msgs/Float64.h>
 
 class Robot {
 public:
@@ -20,6 +21,8 @@ public:
     void DisabledInit();
     void DisabledPeriodic();
     void AlwaysPeriodic();
+    void UpdateThrottle(const std_msgs::Float64& cmd_throttle_percent_);
+    void UpdateSteering(const std_msgs::Float64& cmd_steering_angle_);
 
     void Update();
 private:
@@ -29,6 +32,10 @@ private:
     HeartbeatLED heartbeat_;
     PWM throttle_pwm_;
     PWM steering_pwm_;
+    ros::Subscriber<std_msgs::Float64, Robot> throttle_subscriber_;
+    float throttle_percent_;
+    ros::Subscriber<std_msgs::Float64, Robot> steering_subscriber_;
+    float steering_angle_;
 };
 
 #endif
