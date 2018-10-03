@@ -13,6 +13,7 @@ Robot::Robot(ros::NodeHandle& nh) :
     steering_angle_(0.0) {
         nh.subscribe(throttle_subscriber_);
         nh.subscribe(steering_subscriber_);
+
         steering_pwm_.ConfigOffset(STEERING_OFFSET);
         throttle_pwm_.ConfigLowLimit(THROTTLE_MIN);
         steering_pwm_.ConfigLowLimit(STEERING_MIN);
@@ -28,7 +29,7 @@ void Robot::TeleopPeriodic() {
     throttle_pwm_.Set(transmitter_.throttle_percent());
 
     // Get the steering angle from the Transmitter Interface and pass it to PWM
-    steering_pwm_.Set(transmitter_.steering_angle());
+    steering_pwm_.Set(transmitter_.steering_angle() / 90.0);
 }
 
 void Robot::AutonomousInit() {
@@ -41,7 +42,7 @@ void Robot::AutonomousInit() {
 
 void Robot::AutonomousPeriodic() {
     throttle_pwm_.Set(throttle_percent_);
-    steering_pwm_.Set(steering_angle_);
+    steering_pwm_.Set(steering_angle_ / 90.0);
 }
 
 void Robot::DisabledInit() {
@@ -50,8 +51,6 @@ void Robot::DisabledInit() {
 }
 
 void Robot::DisabledPeriodic() {
-    throttle_percent_ = 0;
-    steering_angle_ = 0;
 }
 
 void Robot::UpdateThrottle(const std_msgs::Float64& cmd_throttle_percent_) {
