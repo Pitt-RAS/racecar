@@ -53,6 +53,9 @@ void Robot::DisabledInit() {
 void Robot::DisabledPeriodic() {
 }
 
+void Robot::AlwaysPeriodic() {
+}
+
 void Robot::UpdateThrottle(const std_msgs::Float64& cmd_throttle_percent_) {
     throttle_percent_ = cmd_throttle_percent_.data;
 }
@@ -88,5 +91,7 @@ void Robot::Update() {
         AutonomousPeriodic();
     else if ( current_state_ == MODE_TELEOP )
         TeleopPeriodic();
+
+    AlwaysPeriodic();
 }
 
