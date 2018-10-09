@@ -13,4 +13,3 @@ void SoftWatchdog::Feed() {
 bool SoftWatchdog::Hungry() {
     return millis() - last_fed_ >= max_age_;
 }
-

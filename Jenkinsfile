@@ -8,6 +8,12 @@ node {
         stage 'Build'
         def image = docker.build "magellan-2018-${BUILD_TAG.toLowerCase()}"
 
+        stage('Lint') {
+            image.inside {
+                sh './lintit.sh'
+            }
+        }
+
         stage('Test') {
             image.inside {
                 sh '''

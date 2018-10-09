@@ -2,14 +2,14 @@
 #include "TransmitterInterface.h"
 
 TransmitterInterface::TransmitterInterface(ros::NodeHandle& nh) :
-    nh_(nh),
-    r9_(TX_SERIALPORT),
-    watchdog_(TX_TIMEOUT),
-    throttle_percent_(0),
-    steering_angle_(0),
-    enabled_(false),
-    autonomous_(false) {
-        r9_.begin();
+        nh_(nh),
+        r9_(TX_SERIALPORT),
+        watchdog_(TX_TIMEOUT),
+        throttle_percent_(0),
+        steering_angle_(0),
+        enabled_(false),
+        autonomous_(false) {
+    r9_.begin();
 }
 
 void TransmitterInterface::Update() {
@@ -21,14 +21,14 @@ void TransmitterInterface::Update() {
         // This watchdog handles if the receiver disconnects
         watchdog_.Feed();
 
-        throttle_percent_ = channels_[0]-172;
+        throttle_percent_ = channels_[0] - 172;
         // Scale 0 to positive 1
         throttle_percent_ /= 1640;
 
         // Center around 0
         throttle_percent_ -= 0.5;
 
-        steering_angle_ = channels_[1]-1000;
+        steering_angle_ = channels_[1] - 1000;
         // Scale -90 to +90
         steering_angle_ /= 828;
         steering_angle_ *= -90;

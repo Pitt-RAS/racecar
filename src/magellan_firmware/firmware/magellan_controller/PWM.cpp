@@ -38,4 +38,3 @@ void PWM::Set(double speed) {
 
     pwm_.writeMicroseconds((int)speed);
 }
-

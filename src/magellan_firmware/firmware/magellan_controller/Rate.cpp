@@ -7,7 +7,7 @@ Rate::Rate(int hz) {
 }
 
 void Rate::SetRate(int hz) {
-    period_us_ = (1.0/(double)hz) * 1000000;
+    period_us_ = (1.0 / (double)hz) * 1000000;
 }
 
 bool Rate::NeedsRun() {
@@ -23,7 +23,7 @@ void Rate::Sleep() {
     unsigned long dt = micros() - last_us_;
 
     if ( dt < period_us_ )
-        delayMicroseconds(period_us_-dt);
+        delayMicroseconds(period_us_ - dt);
 
     last_us_ = micros();
 }

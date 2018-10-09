@@ -1,10 +1,10 @@
 #include "IMU.h"
 
 IMU::IMU(ros::NodeHandle& imu_handle) :
-    node_handle_(imu_handle),
-    imu_publisher_("/platform/imu", &imu_msg_),
-    imu_state_publisher_("/platform/imu_state", &imu_state_msg_),
-    imu_() {
+        node_handle_(imu_handle),
+        imu_publisher_("/platform/imu", &imu_msg_),
+        imu_state_publisher_("/platform/imu_state", &imu_state_msg_),
+        imu_() {
     imu_.begin(Adafruit_BNO055::OPERATION_MODE_IMUPLUS);
     // Setting IMU calibration data
     sensor_offsets_.accel_offset_x = ACCEL_X;

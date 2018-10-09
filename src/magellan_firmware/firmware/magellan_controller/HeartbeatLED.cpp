@@ -2,8 +2,8 @@
 #include "Arduino.h"
 
 HeartbeatLED::HeartbeatLED() :
-    heartbeat_led_rate_(HEARTBEAT_DISABLED_HZ),
-    heartbeat_led_state_(false) {
+        heartbeat_led_rate_(HEARTBEAT_DISABLED_HZ),
+        heartbeat_led_state_(false) {
     pinMode(HEARTBEAT_LED, OUTPUT);
 }
 
