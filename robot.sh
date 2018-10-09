@@ -72,6 +72,6 @@ case $1 in
     ;;
 
     *)
-        echo "Usage: robot.sh [start|stop|deploy|watch|deploy-teensy|ssh]"
+        echo "Usage: robot.sh [start|stop|deploy|watch|shell|deploy-teensy|ssh]"
     ;;
 esac

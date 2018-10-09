@@ -15,6 +15,7 @@ void setup() {
     Robot robot(nh);
     while (true) {
         robot.Update();
+        nh.spinOnce();
         loop_rate.Sleep();
     }
 }

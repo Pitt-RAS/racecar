@@ -1,4 +1,4 @@
-FROM pittras/magellan-2018-base:master-18
+FROM pittras/magellan-2018-base:master-22
 
 # Add known ROS dependencies to the pittras/magellan-2018-docker-base repo
 # This avoids rosdep redownloading them
