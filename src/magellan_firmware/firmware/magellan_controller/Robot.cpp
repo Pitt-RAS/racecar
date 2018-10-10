@@ -11,7 +11,8 @@ Robot::Robot(ros::NodeHandle& nh) :
         throttle_percent_(0.0),
         steering_subscriber_("/platform/steering", &Robot::UpdateSteering, this),
         steering_angle_(0.0),
-        imu_(nh) {
+        imu_(nh),
+        encoder_publisher_(nh) {
     nh.subscribe(throttle_subscriber_);
     nh.subscribe(steering_subscriber_);
 
@@ -55,6 +56,7 @@ void Robot::DisabledPeriodic() {
 }
 
 void Robot::AlwaysPeriodic() {
+    encoder_publisher_.Update();
     imu_.Update();
 }
 

@@ -55,6 +55,7 @@ find_package(catkin REQUIRED
    WaypointStamped.msg
    WaypointStampedArray.msg
    IMUState.msg
+   EncoderDeltaStamped.msg
 )
 
 ## Generate services in the 'srv' folder

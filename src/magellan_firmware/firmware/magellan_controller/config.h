@@ -30,4 +30,7 @@ extern RobotState currentState;
 #define THROTTLE_MIN 0.1
 #define STEERING_MIN 0.05
 
+#define LEFT_ENCODER 20
+#define RIGHT_ENCODER 22
+
 #endif

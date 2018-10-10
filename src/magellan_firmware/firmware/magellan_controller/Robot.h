@@ -10,6 +10,7 @@
 #include "PWM.h"
 #include <std_msgs/Float64.h>
 #include "IMU.h"
+#include "EncoderPublisher.h"
 
 class Robot {
 public:
@@ -38,6 +39,7 @@ private:
     ros::Subscriber<std_msgs::Float64, Robot> steering_subscriber_;
     float steering_angle_;
     IMU imu_;
+    EncoderPublisher encoder_publisher_;
 };
 
 #endif
