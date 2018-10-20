@@ -50,6 +50,8 @@ case $1 in
         $0 stop
         docker build -t ${IMAGE_NAME}:dev .
         $0 start
+
+        ./imageprune.py
     ;;
 
     deploy-teensy)

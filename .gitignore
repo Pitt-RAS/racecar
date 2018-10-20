@@ -56,3 +56,4 @@ CATKIN_IGNORE
 .catkin_workspace
 /src/CMakeLists.txt
 ssh.pid
+.ycm_extra_conf.py
