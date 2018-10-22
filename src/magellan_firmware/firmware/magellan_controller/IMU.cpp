@@ -1,4 +1,5 @@
 #include "IMU.h"
+#include "config.h"
 
 IMU::IMU(ros::NodeHandle& imu_handle) :
         node_handle_(imu_handle),
@@ -58,6 +59,12 @@ void IMU::Update() {
         imu_msg_.angular_velocity.x = angular_velocity.x();
         imu_msg_.angular_velocity.y = angular_velocity.y();
         imu_msg_.angular_velocity.z = angular_velocity.z();
+
+        imu_msg_.orientation_covariance[8] = kIMUOrientationVariance;
+
+        imu_msg_.linear_acceleration_covariance[0] = kIMUAccelVariance[0];
+        imu_msg_.linear_acceleration_covariance[4] = kIMUAccelVariance[1];
+
         imu_publisher_.publish(&imu_msg_);
     }
 }

@@ -2,4 +2,7 @@
     <node name="teensy_bridge" pkg="rosserial_python" type="serial_node.py">
         <param name="port" value="/dev/ttyACM0" />
     </node>
+
+    <include file="$(find magellan_core)/launch/static_tf.launch" />
+    <include file="$(find magellan_core)/launch/localization.launch" />
 </launch>

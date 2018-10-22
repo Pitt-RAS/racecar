@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="robot_localization" type="ekf_localization_node" name="odom_ekf" clear_params="true">
+        <rosparam command="load" file="$(find magellan_core)/params/odom_ekf.yaml" />
+    </node>
+</launch>

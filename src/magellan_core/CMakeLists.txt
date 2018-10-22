@@ -55,7 +55,6 @@ find_package(catkin REQUIRED
    WaypointStamped.msg
    WaypointStampedArray.msg
    IMUState.msg
-   EncoderDeltaStamped.msg
    Obstacle.msg
    ObstacleStamped.msg
    ObstacleStampedArray.msg

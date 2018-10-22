@@ -11,6 +11,7 @@
 #include <std_msgs/Float64.h>
 #include "IMU.h"
 #include "EncoderPublisher.h"
+#include "Drivetrain.h"
 
 class Robot {
 public:
@@ -32,14 +33,13 @@ private:
     ros::NodeHandle& nh_;
     TransmitterInterface transmitter_;
     HeartbeatLED heartbeat_;
-    PWM throttle_pwm_;
-    PWM steering_pwm_;
     ros::Subscriber<std_msgs::Float64, Robot> throttle_subscriber_;
     float throttle_percent_;
     ros::Subscriber<std_msgs::Float64, Robot> steering_subscriber_;
     float steering_angle_;
     IMU imu_;
     EncoderPublisher encoder_publisher_;
+    Drivetrain drivetrain_;
 };
 
 #endif
