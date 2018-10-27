@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-import sys
 import rospy
 
 from gameplay_exception import GameplayException
 from magellan_core.msg import WaypointStamped
+
 
 def _go_to_goal(goal):
     waypoint = WaypointStamped()
@@ -11,14 +11,18 @@ def _go_to_goal(goal):
     waypoint.waypoint.goal.position.y = goal[1]
     pub.publish(waypoint)
 
+
 def _cone_to_target(cones, goal):
     return None
+
 
 def _goal_done(goal):
     return False
 
+
 def _robot_is_safe():
     return True
+
 
 def _goal_to_completion(goal):
     _go_to_goal(goal)
@@ -27,6 +31,7 @@ def _goal_to_completion(goal):
             rospy.logerr('Robot deemed to be in unsafe state! Taking down gameplay')
             raise GameplayException('Robot deemed unsafe, taking down gameplay')
         rospy.sleep(.5)
+
 
 if __name__ == '__main__':
     rospy.init_node('magellan_gameplay')
@@ -49,4 +54,3 @@ if __name__ == '__main__':
             cone = _cone_to_target(cones, goal)
 
         _goal_to_completion(goal)
-

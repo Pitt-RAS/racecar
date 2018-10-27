@@ -5,6 +5,7 @@ from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from collections import namedtuple
 
+
 class ConeDetectNode:
     def __init__(self):
         # Placeholder for the eventual image publisher
@@ -26,11 +27,12 @@ class ConeDetectNode:
 
     def update(self):
         self.cone_loc_pub.publish(self.coneLocations[0])
-    
-rospy.init_node('cone_loc', anonymous = False)
+
+
+rospy.init_node('cone_loc', anonymous=False)
 rate = rospy.Rate(rospy.get_param('~rate', 10))
 ConeData = namedtuple('ConeData', ['point', 'score'])
 node = ConeDetectNode()
 while not rospy.is_shutdown():
     node.update()
-    rate.sleep()            
+    rate.sleep()

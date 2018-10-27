@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 import rospy
-from geometry_msgs.msg import Point, PolygonStamped
+from geometry_msgs.msg import Point
 from magellan_core.msg import (ObstacleStamped, ObstacleStampedArray)
 from visualization_msgs.msg import Marker, MarkerArray
+
 
 class FakeObstacles(object):
     def __init__(self, obstacles):
         self._marker_pub = rospy.Publisher('/obstacle_markers',
-                              MarkerArray,
-                              queue_size=5)
+                                           MarkerArray,
+                                           queue_size=5)
 
         self._obst_pub = rospy.Publisher('/obstacles',
-                              ObstacleStampedArray,
-                              queue_size=5)
+                                         ObstacleStampedArray,
+                                         queue_size=5)
 
         self._obstacle_msg = ObstacleStampedArray()
         self._marker_message = MarkerArray()
@@ -60,7 +61,7 @@ class FakeObstacles(object):
 
             self._marker_message.markers.append(marker)
 
-            marker_id = marker_id+1
+            marker_id = marker_id + 1
 
     def _publish_obstacles(self):
         self._obst_pub.publish(self._obstacle_msg)
@@ -71,6 +72,7 @@ class FakeObstacles(object):
     def update(self):
         self._publish_obstacles()
         self._publish_markers()
+
 
 if __name__ == '__main__':
     rospy.init_node('fake_sensors')
