@@ -7,6 +7,7 @@ FROM pittras/magellan-2018-base:master-30
 COPY . /robot
 WORKDIR /robot
 
+RUN bash -c "pip install -r requirements_pip.txt"
 RUN bash -c "source /opt/magellan-deps/devel/setup.bash && \
              rosdep install --from-paths src --ignore-src -y && \
              catkin_make && \

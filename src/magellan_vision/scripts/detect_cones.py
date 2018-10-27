@@ -2,6 +2,8 @@
 import rospy
 import yolo
 from geometry_msgs.msg import Point
+from sensor_msgs.msg import Image
+from collections import namedtuple
 
 class ConeDetectNode:
     def __init__(self):
@@ -12,11 +14,12 @@ class ConeDetectNode:
         self.yolo = yolo.YOLO()
         self.cones = []
 
-    def _process_image(self, img):
+    def _process_image(self, imageMessage):
+        img = imageMessage.data
         (boxes, scores, classes) = self.yolo.detect_image(img)
         for (box, score, objClass) in zip(boxes, scores, classes):
             self.cones = []
-            if objClass == 'cone':
+            if objClass == 0:
                 # TODO: change this to be the cone location
                 newCone = ConeData(Point(0), score)
                 self.cones.append(newCone)
@@ -25,7 +28,7 @@ class ConeDetectNode:
         self.cone_loc_pub.publish(self.coneLocations[0])
     
 rospy.init_node('cone_loc', anonymous = False)
-rate = rospy.Rate(rospy.et_param('~rate', 10))
+rate = rospy.Rate(rospy.get_param('~rate', 10))
 ConeData = namedtuple('ConeData', ['point', 'score'])
 node = ConeDetectNode()
 while not rospy.is_shutdown():

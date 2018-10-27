@@ -50,6 +50,13 @@ qtcreator-*
 # Vim
 *.swp
 
+# Pipenv
+Pipfile*
+
+# Weights (too large for github)
+*.weights
+*.h5
+
 # Catkin custom files
 CATKIN_IGNORE
 

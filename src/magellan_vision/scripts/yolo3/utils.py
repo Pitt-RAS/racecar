@@ -1,13 +1,15 @@
-"""Miscellaneous utility functions."""
+u"""Miscellaneous utility functions."""
+# Note: this was automatically converted from python 3 to 2
 
-from functools import reduce
-
+from __future__ import division
+from __future__ import absolute_import
 from PIL import Image
 import numpy as np
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
+from itertools import imap
 
 def compose(*funcs):
-    """Compose arbitrarily many functions, evaluated left to right.
+    u"""Compose arbitrarily many functions, evaluated left to right.
 
     Reference: https://mathieularose.com/function-composition-in-python/
     """
@@ -15,10 +17,10 @@ def compose(*funcs):
     if funcs:
         return reduce(lambda f, g: lambda *a, **kw: g(f(*a, **kw)), funcs)
     else:
-        raise ValueError('Composition of empty sequence not supported.')
+        raise ValueError(u'Composition of empty sequence not supported.')
 
 def letterbox_image(image, size):
-    '''resize image with unchanged aspect ratio using padding'''
+    u'''resize image with unchanged aspect ratio using padding'''
     iw, ih = image.size
     w, h = size
     scale = min(w/iw, h/ih)
@@ -26,7 +28,7 @@ def letterbox_image(image, size):
     nh = int(ih*scale)
 
     image = image.resize((nw,nh), Image.BICUBIC)
-    new_image = Image.new('RGB', size, (128,128,128))
+    new_image = Image.new(u'RGB', size, (128,128,128))
     new_image.paste(image, ((w-nw)//2, (h-nh)//2))
     return new_image
 
@@ -34,12 +36,12 @@ def rand(a=0, b=1):
     return np.random.rand()*(b-a) + a
 
 def get_random_data(annotation_line, input_shape, random=True, max_boxes=50, jitter=.3, hue=.1, sat=1.5, val=1.5, proc_img=True):
-    '''random preprocessing for real-time data augmentation'''
+    u'''random preprocessing for real-time data augmentation'''
     line = annotation_line.split()
     image = Image.open(line[0])
     iw, ih = image.size
     h, w = input_shape
-    box = np.array([np.array(list(map(int,box.split(',')))) for box in line[1:]])
+    box = np.array([np.array(list(imap(int,box.split(u',')))) for box in line[1:]])
 
     if not random:
         # resize image
@@ -51,7 +53,7 @@ def get_random_data(annotation_line, input_shape, random=True, max_boxes=50, jit
         image_data=0
         if proc_img:
             image = image.resize((nw,nh), Image.BICUBIC)
-            new_image = Image.new('RGB', (w,h), (128,128,128))
+            new_image = Image.new(u'RGB', (w,h), (128,128,128))
             new_image.paste(image, (dx, dy))
             image_data = np.array(new_image)/255.
 
@@ -80,7 +82,7 @@ def get_random_data(annotation_line, input_shape, random=True, max_boxes=50, jit
     # place image
     dx = int(rand(0, w-nw))
     dy = int(rand(0, h-nh))
-    new_image = Image.new('RGB', (w,h), (128,128,128))
+    new_image = Image.new(u'RGB', (w,h), (128,128,128))
     new_image.paste(image, (dx, dy))
     image = new_image
 
