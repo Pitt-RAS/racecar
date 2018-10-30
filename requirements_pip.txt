@@ -1,5 +1,0 @@
-opencv-python
-tensorflow
-keras
-Pillow
-matplotlib
