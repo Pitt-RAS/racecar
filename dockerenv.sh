@@ -35,6 +35,8 @@ then
 
             echo -n "Waiting for Docker socket to appear... "
 
+            COUNT=10
+            I=1
             while true
             do
                 if [ -e docker.sock ]
@@ -52,7 +54,15 @@ then
                     exit 1
                     break
                 fi
+                I=$((I+1))
 
+                if test $I -gt $COUNT
+                then
+                    echo "Connection failed"
+                    rm ssh.pid
+                    exit 1
+                    break
+                fi
                 sleep 0.2
             done
             echo " Started"

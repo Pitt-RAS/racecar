@@ -14,6 +14,8 @@ fi
 case $1 in
     start)
         shift
+        docker stop ${CONTAINER_NAME} &> /dev/null
+        docker rm ${CONTAINER_NAME} &> /dev/null
         docker run \
             -d \
             -it \
@@ -48,6 +50,7 @@ case $1 in
 
     deploy)
         $0 stop
+        set -e
         docker build -t ${IMAGE_NAME}:dev .
         $0 start
 
