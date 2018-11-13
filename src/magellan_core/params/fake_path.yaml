@@ -1,0 +1,3 @@
+path: [[0,0], [20,0], [20,-20]]
+step_size: .01
+path_frame: odom
