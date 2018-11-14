@@ -30,12 +30,15 @@ static void SetupEncoderISR() {
 EncoderPublisher::EncoderPublisher(ros::NodeHandle& nh) :
         nh_(nh),
         velocity_publisher_("/platform/velocity", &twist_msg_),
+        encoder_count_publisher_("/platform/encoder_count", &encoder_count_msg_),
         update_rate_(ENCODER_UPDATE_HZ),
+        update_rate_debug_(DEBUG_HZ),
         last_left_count_(0),
         last_right_count_(0) {
     SetupEncoderISR();
 
     nh.advertise(velocity_publisher_);
+    nh.advertise(encoder_count_publisher_);
 
     twist_msg_.header.frame_id = "base_link";
     twist_msg_.twist.covariance[0] = kVelocityVariance;
@@ -47,7 +50,6 @@ void EncoderPublisher::Update(bool forward) {
         cli();
         long int left_delta = left_encoder_count - last_left_count_;
         long int right_delta = right_encoder_count - last_right_count_;
-
         last_left_count_ = left_encoder_count;
         last_right_count_ = right_encoder_count;
         sei();
@@ -64,5 +66,11 @@ void EncoderPublisher::Update(bool forward) {
         twist_msg_.twist.twist.linear.x = avg_speed;
 
         velocity_publisher_.publish(&twist_msg_);
+    }
+
+    if ( update_rate_debug_.NeedsRun() ) {
+        encoder_count_msg_.left = left_encoder_count;
+        encoder_count_msg_.right = right_encoder_count;
+        encoder_count_publisher_.publish(&encoder_count_msg_);
     }
 }

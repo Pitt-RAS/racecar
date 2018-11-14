@@ -1,5 +1,6 @@
 #include "Drivetrain.h"
 #include "config.h"
+#include <cmath>
 
 Drivetrain::Drivetrain(ros::NodeHandle& nh) :
         last_commanded_percent_(0),
@@ -37,6 +38,8 @@ double Drivetrain::GetSteeringAngleForPercent(double percent) {
 }
 
 double Drivetrain::GetPercentForSteeringAngle(double angle) {
+    if ( std::abs(angle) > kMaxTurningAngle )
+        return std::copysign(1, angle);
     return angle / kMaxTurningAngle;
 }
 
@@ -47,6 +50,10 @@ double Drivetrain::GetTurningRadius(double percent) {
 
     double angle = GetSteeringAngleForPercent(percent);
     return kTrackLength * (1.0 / tan(angle)) + (kTrackWidth / 2.0);
+}
+
+double Drivetrain::GetSteeringAngle(double radius) {
+    return std::copysign(atan(kTrackLength / (std::abs(radius) + (kTrackWidth / 2))), radius);
 }
 
 bool Drivetrain::DirectionIsForward() {

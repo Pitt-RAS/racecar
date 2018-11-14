@@ -49,16 +49,17 @@ find_package(catkin REQUIRED
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   Waypoint.msg
-   WaypointStamped.msg
-   WaypointStampedArray.msg
-   IMUState.msg
-   Obstacle.msg
-   ObstacleStamped.msg
-   ObstacleStampedArray.msg
-   )
+add_message_files(
+  FILES
+  Waypoint.msg
+  WaypointStamped.msg
+  WaypointStampedArray.msg
+  IMUState.msg
+  Obstacle.msg
+  ObstacleStamped.msg
+  ObstacleStampedArray.msg
+  EncoderCount.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(

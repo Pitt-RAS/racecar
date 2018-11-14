@@ -20,11 +20,10 @@ extern RobotState currentState;
 #define MAIN_LOOP_HZ 100
 #define XBEE_LOOP_HZ 3
 #define ENCODER_UPDATE_HZ 60
-#define DEBUG_LOOP_HZ 5
+#define DEBUG_HZ 5
 
 #define ESC_PWM 3 // Throttle
 #define SERVO_PWM 4
-
 
 // Steering trim
 #define STEERING_OFFSET -0.2
@@ -39,13 +38,16 @@ extern RobotState currentState;
 const constexpr double kTrackLength = 0.3175;
 // Distance from left wheel to right wheel
 const constexpr double kTrackWidth = 0.254;
+// Max velocity
+const constexpr double kMaxVelocity = 3.0;
 
 // Max turning angle of the inside wheel in a turn
 const constexpr double kMaxTurningAngle = M_PI / 6.0;
 
 const constexpr double kIMUAccelVariance[2] = {10, 10};
 const constexpr double kIMUOrientationVariance = 1e-5;
+const constexpr double kIMUGyroVariance = 0.00001;
 const constexpr double kVelocityVariance = 1;
-const constexpr double kDistancePerTick = (0.075 * 3.14) / 10.0;
+const constexpr double kDistancePerTick = (0.079 * 3.14) / 10.0;
 
 #endif

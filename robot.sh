@@ -23,6 +23,7 @@ case $1 in
             --name ${CONTAINER_NAME} \
             --net host \
             -v /dev/bus/usb:/dev/bus/usb \
+            -v /maps:/maps \
             -e ROS_IP=${ROBOT_IP} \
             ${IMAGE_NAME}:dev \
             ${@:-$DEFAULT_LAUNCH}

@@ -5,9 +5,9 @@ Robot::Robot(ros::NodeHandle& nh) :
         nh_(nh),
         transmitter_(nh),
         heartbeat_(),
-        throttle_subscriber_("/platform/cmd_throttle", &Robot::UpdateThrottle, this),
+        throttle_subscriber_("/platform/cmd_velocity", &Robot::UpdateThrottle, this),
         throttle_percent_(0.0),
-        steering_subscriber_("/platform/cmd_steering", &Robot::UpdateSteering, this),
+        steering_subscriber_("/platform/cmd_turning_radius", &Robot::UpdateSteering, this),
         steering_angle_(0.0),
         imu_(nh),
         encoder_publisher_(nh),
@@ -39,7 +39,7 @@ void Robot::AutonomousInit() {
 
 void Robot::AutonomousPeriodic() {
     drivetrain_.SetThrottlePercent(throttle_percent_);
-    drivetrain_.SetSteeringAngle(steering_angle_);
+    drivetrain_.SetSteeringAngle(-steering_angle_);
 }
 
 void Robot::DisabledInit() {
@@ -55,12 +55,12 @@ void Robot::AlwaysPeriodic() {
     imu_.Update();
 }
 
-void Robot::UpdateThrottle(const std_msgs::Float64& cmd_throttle_percent_) {
-    throttle_percent_ = cmd_throttle_percent_.data;
+void Robot::UpdateThrottle(const std_msgs::Float64& cmd_velocity) {
+    throttle_percent_ = cmd_velocity.data / kMaxVelocity;
 }
 
-void Robot::UpdateSteering(const std_msgs::Float64& cmd_steering_angle_) {
-    steering_angle_ = cmd_steering_angle_.data;
+void Robot::UpdateSteering(const std_msgs::Float64& cmd_turning_radius) {
+    steering_angle_ = drivetrain_.GetSteeringAngle(cmd_turning_radius.data);
 }
 
 void Robot::Update() {

@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="magellan_motion" type="path_follower_node" name="path_follower" />
+    <test test-name="path_follower_test" pkg="magellan_motion" type="path_follower_test.py" />
+</launch>
+

@@ -48,7 +48,7 @@ if __name__ == '__main__':
     rospy.init_node('fake_path')
 
     node = FakePathNode()
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(1)
 
     while not rospy.is_shutdown():
         node.publish_path()
