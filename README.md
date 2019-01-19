@@ -1,6 +1,9 @@
 # magellan-2018
 Repository for Pitt RAS' Magellan Team's code.
 
+## Welcome back to Magellan for our second semester!
+Please see the 'wiki' tab for the schedule (component due dates) and other information about the project.
+
 ## Deployment Scripts
 
 Code is deployed to the robot as a Docker image. The `dockerenv.sh` script automates the process of connecting to the Docker daemon on the NUC over SSH. This script can be sourced while a session is active to set the `DOCKER_HOST` environment variable. While you can interact with docker directly, most actions are automated with the `robot.sh` script.
