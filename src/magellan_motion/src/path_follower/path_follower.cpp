@@ -10,8 +10,10 @@ static inline double L2Norm(const geometry_msgs::PoseStamped& pose) {
 PathFollower::PathFollower(ros::NodeHandle& nh,
                            double discretization,
                            double lookahead_distance,
+                           double lookahead_multiplier,
                            double max_vel,
-                           double max_acc) :
+                           double max_acc,
+                           double turn_velocity_multiplier) :
         nh_(nh),
         tf_buffer_(),
         tf_listener_(tf_buffer_),
@@ -24,7 +26,9 @@ PathFollower::PathFollower(ros::NodeHandle& nh,
         path_start_index_(0),
         discretization_(discretization),
         max_acc_(max_acc),
-        lookahead_distance_(lookahead_distance) {
+        lookahead_distance_(lookahead_distance),
+        lookahead_multiplier_(lookahead_multiplier_),
+        turn_velocity_multiplier_(turn_velocity_multiplier) {
 }
 
 void PathFollower::UpdatePath(nav_msgs::Path::ConstPtr path) {
@@ -38,6 +42,7 @@ void PathFollower::Update() {
 
     if ( current_path_->poses.size() == 0 ) {
         ROS_WARN("Commanded path is empty");
+        velocity_limiter_.Reset();
         return;
     }
 
@@ -75,10 +80,7 @@ void PathFollower::Update() {
         turning_radius = -(lookahead_distance_ * lookahead_distance_) / (2.0 * lookahead_pose.pose.position.y);
 
     static std_msgs::Float64 velocity_command;
-    double speed = 0;
-    if ( estimated_remaining_distance > 0 )
-        speed = max_vel_;
-    velocity_command.data = speed;
+    velocity_command.data = velocity_limiter_.Update(estimated_remaining_distance);
     velocity_publisher_.publish(velocity_command);
 
     static std_msgs::Float64 turning_command;

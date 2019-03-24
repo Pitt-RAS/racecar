@@ -18,6 +18,13 @@ int main(int argc, char** argv) {
         return 0;
     }
 
+    double lookahead_multiplier;
+    if ( !private_nh.getParam("lookahead_multiplier", lookahead_multiplier) ) {
+        ROS_ERROR("Lookahead multiplier param unset");
+        ros::shutdown();
+        return 0;
+    }
+
     double discretization;
     if ( !private_nh.getParam("discretization", discretization) ) {
         ROS_ERROR("discretization param unset");
@@ -39,7 +46,20 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    PathFollower path_follower(nh, discretization, lookahead_distance, max_velocity, max_acceleration);
+    double turn_velocity_multiplier;
+    if ( !private_nh.getParam("turn_velocity_multiplier", turn_velocity_multiplier) ) {
+        ROS_ERROR("Turn velocity multiplier  param unset");
+        ros::shutdown();
+        return 0;
+    }
+
+    PathFollower path_follower(nh,
+                               discretization,
+                               lookahead_distance,
+                               lookahead_multiplier,
+                               max_velocity,
+                               max_acceleration,
+                               turn_velocity_multiplier);
 
     while (ros::ok()) {
         try {

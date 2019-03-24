@@ -12,7 +12,13 @@
 
 class PathFollower {
 public:
-    PathFollower(ros::NodeHandle& nh, double discretization, double lookahead_distance, double max_vel, double max_acc);
+    PathFollower(ros::NodeHandle& nh,
+                 double discretization,
+                 double lookahead_distance,
+                 double lookahead_multiplier,
+                 double max_vel,
+                 double max_acc,
+                 double turn_velocity_multiplier);
     void Update();
 private:
     ros::NodeHandle& nh_;
@@ -31,8 +37,10 @@ private:
 
     double discretization_;
     double lookahead_distance_;
+    double lookahead_multiplier_;
     double max_vel_;
     double max_acc_;
+    double turn_velocity_multiplier_;
 
     void UpdatePath(nav_msgs::Path::ConstPtr path);
 };
