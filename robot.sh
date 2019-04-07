@@ -4,12 +4,8 @@
 pushd $(dirname $BASH_SOURCE) > /dev/null
 
 source robot.env
-source dockerenv.sh
-if [ $? != 0 ]
-then
-    echo "Couldn't setup dockerenv"
-    exit 1
-fi
+
+export DOCKER_HOST="ssh://ras@${ROBOT_IP}"
 
 case $1 in
     start)
@@ -39,6 +35,10 @@ case $1 in
     stop)
         docker stop ${CONTAINER_NAME} &> /dev/null
         docker rm ${CONTAINER_NAME} &> /dev/null
+    ;;
+
+    shutdown)
+        ssh ras@${ROBOT_IP} "sudo poweroff" &> /dev/null
     ;;
 
     shell)

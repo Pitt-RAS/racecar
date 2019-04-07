@@ -6,7 +6,7 @@ IMU::IMU(ros::NodeHandle& imu_handle) :
         imu_publisher_("/platform/imu", &imu_msg_),
         imu_state_publisher_("/platform/imu_state", &imu_state_msg_),
         imu_() {
-    imu_.begin(Adafruit_BNO055::OPERATION_MODE_IMUPLUS);
+    imu_.begin(Adafruit_BNO055::OPERATION_MODE_NDOF);
     // Setting IMU calibration data
     sensor_offsets_.accel_offset_x = ACCEL_X;
     sensor_offsets_.accel_offset_y = ACCEL_Y;
