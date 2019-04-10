@@ -13,33 +13,38 @@ from cv_bridge import CvBridge
 
 class TargetDetector():
     def __init__(self):
-        # Temporary for testing - hues from the images in rules document
+        # Hues (in HSV space, 0-180) from pictures taken of the targets
         self.hueArch = 39
-        self.huePole = 0
-        self.hueRamp = 180
+        self.huePole = 180
+        self.hueRamp = 100
 
         # These should probably be ROSparams
+        # Hue tolerances for color thresholding - scale of 0 to 180 (doesn't wrap around yet)
         self.hueMinArch = self.hueArch - 20
         self.hueMaxArch = self.hueArch + 20
-        self.hueMinRamp = self.hueRamp - 50
-        self.hueMaxRamp = self.hueRamp + 50
-        self.hueMinPole = self.huePole - 20
-        self.hueMaxPole = self.huePole + 20
+        self.hueMinRamp = self.hueRamp - 30
+        self.hueMaxRamp = self.hueRamp + 30
+        self.hueMinPole = self.huePole - 30
+        self.hueMaxPole = self.huePole + 30
         self.cannyThresh = 100
         self.houghArchThresh = 70
-        self.verticalArchThresh = 10
+        # Detected arch must be at least this fraction of the image wide
+        self.verticalArchThresh = 0.05
         self.houghPoleThresh = 40
-        self.verticalPoleThresh = 5
+        # Minimum angle to the horizontal of the detected lines, in degrees
+        self.verticalPoleThresh = 80
+        # Detection must be at least this fraction of the image height tall
+        self.poleHeightThresh = 0.05
 
-        # I think these should be the same for all targets
+        # I think these should be the same for all targets - scale of 0 - 255
         # Sat should be wide for various outdoors conditions
-        self.satMin = 50
+        self.satMin = 100
         self.satMax = 255
         # Low val = less color - raise min to reduce risk of picking up non-target objects
         self.valMin = 150
         self.valMax = 255
 
-        self.lookForArch = True
+        self.lookForArch = False
         self.lookForRamp = True
         self.lookForPole = True
         self.debugOutput = True
@@ -53,7 +58,9 @@ class TargetDetector():
         rospy.init_node('target_detector')
 
     def newFrameCallback(self, newFrame):
+        # Use the second version to test with a local image
         self.frame = self.bridge.imgmsg_to_cv2(newFrame, 'bgr8')
+        # self.frame = cv.imread('pole_ramp_pavement.jpg', cv.IMREAD_COLOR)
         if self.lookForArch:
             (archMidPt, archWidth) = self.detectArch()
             if archMidPt is not None:
@@ -92,7 +99,6 @@ class TargetDetector():
 
 # Get the current frame from ROS
     def detectArch(self):
-        # frame = cv.imread('Hoop.png', cv.IMREAD_COLOR)
         frame = self.frame
         frameHSV = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
         archThreshold = cv.inRange(frameHSV, (self.hueMinArch, self.satMin, self.valMin),
@@ -103,9 +109,10 @@ class TargetDetector():
 
         poles = []
         archMidPt = None
+        imgWidth = np.shape(frame)[1]
         for line in lines:
             line = line[0]
-            if abs(line[0] - line[2]) < self.verticalArchThresh:
+            if abs(line[0] - line[2]) < imgWidth*self.verticalArchThresh:
                 x = (line[0] + line[2]) / 2
                 sameLine = False
                 for pole in poles:
@@ -115,7 +122,7 @@ class TargetDetector():
                     poles.append(x)
                     if self.debugOutput:
                         cv.line(frame, (line[0], line[1]), (line[2], line[3]), (0, 0, 255), 3)
-                        # cv.imshow("lines", frame)
+                        cv.imshow("lines", frame)
                         cv.waitKey(0)
 
         if len(poles) == 2:
@@ -126,20 +133,25 @@ class TargetDetector():
             return (None, None)
 
     def detectRamp(self):
-        # frame = cv.imread('Ramp.png', cv.IMREAD_COLOR)
         frame = self.frame
         frameHSV = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
         rampThreshold = cv.inRange(frameHSV, (self.hueMinRamp, self.satMin, self.valMin),
                                    (self.hueMaxRamp, self.satMax, self.valMax))
-        center = ndimage.measurements.center_of_mass(rampThreshold)
-        centerImage = cv.circle(frame, (int(center[1]), int(center[0])), 10, (0, 0, 255), 3)  # noqa: F841
-        if self.debugOutput:
-            # cv.imshow("threshold", centerImage)
-            cv.waitKey(0)
+        rampSize = np.sum(np.sum(rampThreshold))
+        imgSize = np.size(rampThreshold)
+        # Don't detect a ramp if the area is less than 1% of the image
+        if rampSize < (imgSize / 100):
+            center = None
+        else:
+            center = ndimage.measurements.center_of_mass(rampThreshold)
+            if self.debugOutput:
+                colorThreshold = cv.cvtColor(rampThreshold, cv.COLOR_GRAY2BGR)
+                centerImage = cv.circle(colorThreshold, (int(center[1]), int(center[0])), 10, (0, 0, 255), 3)
+                cv.imshow("center", centerImage)
+                cv.waitKey(0)
         return center
 
     def detectPole(self):
-        # frame = cv.imread('Stanchion2.png', cv.IMREAD_COLOR)
         frame = self.frame
         frameHSV = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
         poleThreshold = cv.inRange(frameHSV, (self.hueMinPole, self.satMin, self.valMin),
@@ -149,30 +161,33 @@ class TargetDetector():
         poles = []
         poleLengths = []
         finalLines = []
+        imgHeight = np.shape(frame)[0]
         for line in lines:
             line = line[0]
-            if abs(line[0] - line[2]) < self.verticalPoleThresh:
+            theta = math.degrees(math.atan2((line[3] - line[1]), (line[2] - line[0])))
+            if abs(theta) > self.verticalPoleThresh:
                 x = (line[0] + line[2]) / 2
                 sameLine = False
                 myLength = math.sqrt((line[0] - line[2])**2 + (line[1] - line[3])**2)
-                for i in range(len(poles)):
-                    if abs(x - poles[i]) < 20:
-                        sameLine = True
-                        if myLength > poleLengths[i]:
-                            poles[i] = x
-                            poleLengths[i] = myLength
-                            finalLines[i] = line
-
-                if not sameLine:
-                    poles.append(x)
-                    poleLengths.append(myLength)
-                    finalLines.append(line)
+                if myLength > (imgHeight*self.poleHeightThresh):
+                    for i in range(len(poles)):
+                        if abs(x - poles[i]) < 20:
+                            sameLine = True
+                            if myLength > poleLengths[i]:
+                                poles[i] = x
+                                poleLengths[i] = myLength
+                                finalLines[i] = line
+                    if not sameLine:
+                        poles.append(x)
+                        poleLengths.append(myLength)
+                        finalLines.append(line)
 
         if self.debugOutput:
+            thresholdColor = cv.cvtColor(poleThreshold, cv.COLOR_GRAY2BGR)
             for line in finalLines:
-                cv.line(frame, (line[0], line[1]), (line[2], line[3]), (0, 0, 255), 3)
-                # cv.imshow("lines", frame)
-                # cv.waitKey(0)
+                cv.line(thresholdColor, (line[0], line[1]), (line[2], line[3]), (0, 0, 255), 3)
+                cv.imshow("lines", thresholdColor)
+                cv.waitKey(0)
 
         return poles
 
