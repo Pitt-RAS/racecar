@@ -9,6 +9,7 @@
 #include "HeartbeatLED.h"
 #include "PWM.h"
 #include <std_msgs/Float64.h>
+#include <std_msgs/Int32.h>
 #include "IMU.h"
 #include "EncoderPublisher.h"
 #include "Drivetrain.h"
@@ -37,6 +38,9 @@ private:
     float throttle_percent_;
     ros::Subscriber<std_msgs::Float64, Robot> steering_subscriber_;
     float steering_angle_;
+    std_msgs::Int32 user_input_msg_;
+    ros::Publisher user_input_publisher;
+    Rate user_input_msg_rate_;
     IMU imu_;
     EncoderPublisher encoder_publisher_;
     Drivetrain drivetrain_;

@@ -61,7 +61,7 @@ void EncoderPublisher::Update(bool forward) {
         }
 
         // Compute and publish velocity in robot frame
-        double avg_speed = ((left_delta + right_delta) / 2.0) * kDistancePerTick / (1.0 / ENCODER_UPDATE_HZ);
+        double avg_speed = (left_delta) * kDistancePerTick / (1.0 / ENCODER_UPDATE_HZ);
         twist_msg_.header.stamp = nh_.now();
         twist_msg_.twist.twist.linear.x = avg_speed;
 

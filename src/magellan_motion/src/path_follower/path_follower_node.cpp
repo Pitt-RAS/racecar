@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
     }
 
     PathFollower path_follower(nh,
+                               private_nh,
                                discretization,
                                lookahead_distance,
                                lookahead_multiplier,
@@ -67,6 +68,7 @@ int main(int argc, char** argv) {
         }
         catch (tf2::TransformException e) {
             ROS_ERROR("path_follower: Failed to lookup transform");
+            ROS_ERROR("%s", e.what());
         }
         ros::spinOnce();
         rate.sleep();

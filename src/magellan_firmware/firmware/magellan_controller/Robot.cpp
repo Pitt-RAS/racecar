@@ -9,11 +9,15 @@ Robot::Robot(ros::NodeHandle& nh) :
         throttle_percent_(0.0),
         steering_subscriber_("/platform/cmd_turning_radius", &Robot::UpdateSteering, this),
         steering_angle_(0.0),
+        user_input_msg_(),
+        user_input_publisher("/platform/user_input", &user_input_msg_),
+        user_input_msg_rate_(1),
         imu_(nh),
         encoder_publisher_(nh),
         drivetrain_(nh) {
     nh.subscribe(throttle_subscriber_);
     nh.subscribe(steering_subscriber_);
+    nh.advertise(user_input_publisher);
 
     DisabledInit();
 }
@@ -82,6 +86,11 @@ void Robot::Update() {
         DisabledInit();
         current_state_ = MODE_DISABLED;
         heartbeat_.SetState(current_state_);
+    }
+
+    if ( transmitter_.WantsEnable() ) {
+        user_input_msg_.data = transmitter_.user_setting();
+        user_input_publisher.publish(&user_input_msg_);
     }
 
     if ( current_state_ == MODE_DISABLED )

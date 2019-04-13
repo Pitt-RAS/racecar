@@ -136,6 +136,11 @@ add_executable(path_follower_node
     src/path_follower/velocity_limiter.cpp
 )
 
+#add_executable(waypoint_driver_node
+#    src/waypoint_driver/waypoint_driver_node.cpp
+#    src/waypoint_driver/waypoint_driver.cpp
+#)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -150,6 +155,10 @@ add_executable(path_follower_node
 target_link_libraries(path_follower_node
   ${catkin_LIBRARIES}
 )
+
+#target_link_libraries(waypoint_driver_node
+#  ${catkin_LIBRARIES}
+#)
 
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++17)
 

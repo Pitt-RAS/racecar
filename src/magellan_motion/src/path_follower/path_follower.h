@@ -2,6 +2,7 @@
 #define PATH_FOLLOWER_H
 
 #include <ros/ros.h>
+#include <std_msgs/Int32.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
 #include <tf2_ros/transform_listener.h>
@@ -13,6 +14,7 @@
 class PathFollower {
 public:
     PathFollower(ros::NodeHandle& nh,
+                 ros::NodeHandle& private_nh,
                  double discretization,
                  double lookahead_distance,
                  double lookahead_multiplier,
@@ -22,9 +24,11 @@ public:
     void Update();
 private:
     ros::NodeHandle& nh_;
+    ros::NodeHandle& private_nh_;
     tf2_ros::Buffer tf_buffer_;
     tf2_ros::TransformListener tf_listener_;
 
+    ros::Subscriber user_input_subscriber_;
     ros::Subscriber path_subscriber_;
     ros::Publisher velocity_publisher_;
     ros::Publisher turning_radius_publisher_;
@@ -42,6 +46,7 @@ private:
     double max_acc_;
     double turn_velocity_multiplier_;
 
+    void UpdateUserInput(std_msgs::Int32::ConstPtr input);
     void UpdatePath(nav_msgs::Path::ConstPtr path);
 };
 

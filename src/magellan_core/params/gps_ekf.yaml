@@ -65,18 +65,6 @@ odom_frame: odom            # Defaults to "odom" if unspecified
 base_link_frame: base_link  # Defaults to "base_link" if unspecified
 world_frame: map           # Defaults to the value of odom_frame if unspecified
 
-
-imu0: /platform/imu
-imu0_config: [false, false, false,
-              false, false,  false,
-              false, false, false,
-              false,  false, true,
-              true, true, false]
-imu0_nodelay: false
-imu0_differential: false
-imu0_relative: true
-imu0_queue_size: 5
-
 odom0: /odometry/gps
 odom0_config: [true, true, false,
                false, false, false,
@@ -84,6 +72,7 @@ odom0_config: [true, true, false,
                false, false, false,
                false, false, false]
 odom0_differential: false
+odom0_nodelay: true
 
 
 twist0: /platform/velocity
@@ -102,23 +91,20 @@ twist0_config: [false, false, false,
 
 
 
-#imu0: /platform/imu
-#imu0_config: [false, false, false,
-#              false, false,  false,
-#              false, false, false,
-#              false,  false, true,
-#              true, true, false]
-#imu0_nodelay: false
-#imu0_differential: false
-#imu0_relative: true
-#imu0_queue_size: 5
-#imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
-#imu0_twist_rejection_threshold: 0.8                #
-#imu0_linear_acceleration_rejection_threshold: 0.8  #
+imu0: /platform/imu
+imu0_config: [false, false, false,
+              false, false,  false,
+              false, false, false,
+              false, false, true,
+              false, false, false]
+imu0_nodelay: false
+imu0_differential: false
+imu0_relative: false
+imu0_queue_size: 5
 
 # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
 # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
-imu0_remove_gravitational_acceleration: false
+#imu0_remove_gravitational_acceleration: false
 
 # [ADVANCED]  The EKF and UKF models follow a standard predict/correct cycle. During prediction, if there is no
 # acceleration reference, the velocity at time t+1 is simply predicted to be the same as the velocity at time t. During
