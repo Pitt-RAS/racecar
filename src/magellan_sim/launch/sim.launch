@@ -1,0 +1,3 @@
+<launch>
+    <node name="magellan_sim" pkg="magellan_sim" type="magellan_sim" />
+</launch>

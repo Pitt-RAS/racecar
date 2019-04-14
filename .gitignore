@@ -50,6 +50,9 @@ qtcreator-*
 # Vim
 *.swp
 
+# VS Code
+.vscode
+
 # Pipenv
 Pipfile*
 
