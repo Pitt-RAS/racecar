@@ -51,7 +51,10 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>visualization_msgs</build_depend>
-
+  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend> 
+  <build_depend>message_generation</build_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

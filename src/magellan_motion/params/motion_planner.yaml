@@ -1,0 +1,14 @@
+# Path handler settings
+handler_update_rate: 20
+
+# Planner Settings
+planner_settings: 
+    # space discretization, in meters
+    discret: .25
+    # max number of expanded nodes
+    max_num: 1000
+    # max distance to plan out to
+    max_planning_dist: 10
+    # max turning angle, from straight
+    # in radians (45 degrees)
+    max_theta: .7854
