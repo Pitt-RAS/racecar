@@ -1,8 +1,9 @@
 # magellan-2018
 Repository for Pitt RAS' Magellan Team's code.
 
-## Welcome back to Magellan for our second semester!
-Please see the 'wiki' tab for the schedule (component due dates) and other information about the project.
+![Magellan](https://github.com/Pitt-RAS/magellan-2018/blob/master/resources/magellan.jpg)
+
+First Place, 2019 National Robotics Challenge - Autonomous Vehicle Challenge
 
 ## Deployment Scripts
 
