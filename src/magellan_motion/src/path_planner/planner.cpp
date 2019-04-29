@@ -54,7 +54,7 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
         return p;
     }
 
-    std::shared_ptr<const Successor> parent = goalNode->parent;
+    std::shared_ptr<const Successor> parent = goalNode;
 
     while (parent != nullptr) {
         PoseStamped pt;
