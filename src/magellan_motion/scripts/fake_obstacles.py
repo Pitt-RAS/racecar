@@ -25,22 +25,16 @@ if __name__ == '__main__':
     y_bounds_free = 4/resolution
     y_bounds_free_upper = 5/resolution
 
-    map_im = np.array([], dtype=int)
+    map_im = np.zeros(numX*numY, dtype=int)
 
     for y in range(0, numY):
-        row = np.array([], dtype=int)
         for x in range(0, numX):
+            index = numY * y + x
             if x_bounds_lower <= x <= x_bounds_upper:
                 if y <= y_bounds_free or y >= y_bounds_free_upper:
                     # inside obstacle
-                    row = np.append(row, [100])
-                else:
-                    row = np.append(row, [0])
-            else:
-                row = np.append(row, [0])
-        map_im = np.append(map_im, row)
+                    map_im[index] = 100
 
-    map_im.flatten()
     map_ = map_im.tolist()
 
     msg_ = OccupancyGrid()
