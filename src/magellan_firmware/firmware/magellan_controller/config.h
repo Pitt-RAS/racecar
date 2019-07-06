@@ -26,14 +26,18 @@ extern RobotState currentState;
 #define SERVO_PWM 4
 
 // Steering trim
-#define STEERING_OFFSET -0.2
+#define STEERING_OFFSET 0
 
 #define THROTTLE_MIN 0.1
 #define STEERING_MIN 0.05
 
-#define LEFT_ENCODER 20
+#define ENCODER_A 6
+#define ENCODER_B 7
+#define ENCODER_C 8
+
 #define RUN_BUTTON 21
-#define RIGHT_ENCODER 22
+
+
 
 // Distance from front wheel to back wheel
 const constexpr double kTrackLength = 0.3175;
