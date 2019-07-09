@@ -15,7 +15,7 @@ constexpr double GEAR_RATIO  = 87 / 18;            // gear ratio (87 teeth on bi
 class EncoderPublisher {
 public:
     EncoderPublisher(ros::NodeHandle& nh);
-    void Update(bool forward);
+    void Update();
 private:
     ros::NodeHandle& nh_;
     geometry_msgs::TwistWithCovarianceStamped twist_msg_;
@@ -24,9 +24,6 @@ private:
     ros::Publisher encoder_count_publisher_;
     Rate update_rate_;
     Rate update_rate_debug_;
-    long int last_count_A;
-    long int last_count_B;
-    long int last_count_C;
     double compute_distance(double steps);
     double compute_velocity(double delta);
 };
