@@ -55,7 +55,7 @@ void Robot::DisabledPeriodic() {
 }
 
 void Robot::AlwaysPeriodic() {
-    encoder_publisher_.Update(drivetrain_.DirectionIsForward());
+    encoder_publisher_.Update();
     imu_.Update();
 }
 
