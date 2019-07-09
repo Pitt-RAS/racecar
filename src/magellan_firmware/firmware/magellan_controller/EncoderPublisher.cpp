@@ -7,14 +7,8 @@
 static bool encoder_isr_init = false;
 
 // TODO: Create enum to make pretty
-// these are all totals
-volatile static long int encoder_count_A = 0;
-volatile static long int encoder_count_B = 0;
-volatile static long int encoder_count_C = 0;
-
 volatile static int last_isr = 0;                           // 1=A, 2=B, 3=C - Using this to check last phase
-
-static long int encoder_total = 0;                          // A+B+C
+static long int encoder_total = 0;                          
 static long int encoder_last_total = 0;
 static int encoder_delta = 0;
 
@@ -23,10 +17,10 @@ static int encoder_delta = 0;
 static void isr_A(){
     // if last phase triggered was B, increment; else decrement (because we went backwards)
     if (last_isr == 2){
-        encoder_count_A++;
+        encoder_total++;
     }
     else{
-        encoder_count_A--;
+        encoder_total--;
     }
     
     last_isr = 1;
@@ -35,10 +29,10 @@ static void isr_A(){
 static void isr_B(){
     // if last phase triggered was C, increment; else decrement (backwards)
     if (last_isr == 3){
-        encoder_count_B++;
+        encoder_total++;
     }
     else{
-        encoder_count_B--;
+        encoder_total--;
     }
 
     last_isr = 2;
@@ -47,10 +41,10 @@ static void isr_B(){
 static void isr_C(){
     // if last phase triggered was A, increment; else decrement (backwards)
     if (last_isr == 1){
-        encoder_count_C++;
+        encoder_total++;
     }
     else{
-        encoder_count_C--;
+        encoder_total--;
     }
 
     last_isr = 3;
@@ -73,7 +67,7 @@ static void SetupEncoderISR() {
 EncoderPublisher::EncoderPublisher(ros::NodeHandle& nh) :
         nh_(nh), 
         velocity_publisher_("/platform/velocity", &twist_msg_),                     
-        encoder_count_publisher_("/platform/encoder_count", &encoder_count_msg_),   
+        encoder_total_publisher_("/platform/encoder_total", &encoder_total_msg_),   
         update_rate_(ENCODER_UPDATE_HZ),                    
         update_rate_debug_(DEBUG_HZ),                       
         last_count_A(0), 
@@ -82,7 +76,7 @@ EncoderPublisher::EncoderPublisher(ros::NodeHandle& nh) :
     SetupEncoderISR();
 
     nh.advertise(velocity_publisher_);                      
-    nh.advertise(encoder_count_publisher_);                 
+    nh.advertise(encoder_total_publisher_);                 
 
     twist_msg_.header.frame_id = "base_link";               
     twist_msg_.twist.covariance[0] = kVelocityVariance;     
@@ -93,7 +87,6 @@ void EncoderPublisher::Update() {
         // Update encoder counts
         cli();                                              // stop isrs
 
-        encoder_total = encoder_count_A + encoder_count_B + encoder_count_C;
         encoder_delta = encoder_total - encoder_last_total;
         encoder_last_total = encoder_total;
         
@@ -107,9 +100,9 @@ void EncoderPublisher::Update() {
     }
 
     if ( update_rate_debug_.NeedsRun() ) {
-        encoder_count_msg_.left = encoder_total;
-        encoder_count_msg_.right = -1;
-        encoder_count_publisher_.publish(&encoder_count_msg_);
+        encoder_total_msg_.left = encoder_total;
+        encoder_total_msg_.right = -1;
+        encoder_total_publisher_.publish(&encoder_total_msg_);
     }
 }
 
