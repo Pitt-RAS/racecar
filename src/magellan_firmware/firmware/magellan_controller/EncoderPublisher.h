@@ -9,7 +9,7 @@ constexpr double GEAR_RATIO = 87 / 18;             // gear ratio (87 teeth on bi
 
 #include <ros.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
-#include <magellan_core/EncoderCount.h>
+#include <fsae_core/EncoderCount.h>
 #include "Rate.h"
 
 class EncoderPublisher {
