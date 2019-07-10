@@ -8,7 +8,7 @@ static bool encoder_isr_init = false;
 
 // TODO: Create enum to make pretty
 volatile static int last_isr = 0;                           // 1=A, 2=B, 3=C - Using this to check last phase
-static long int encoder_total = 0;                          
+volatile static long int encoder_total = 0;                          
 static long int encoder_last_total = 0;
 static int encoder_delta = 0;
 
