@@ -69,7 +69,7 @@ EncoderPublisher::EncoderPublisher(ros::NodeHandle& nh) :
         velocity_publisher_("/platform/velocity", &twist_msg_),
         encoder_total_publisher_("/platform/encoder_total", &encoder_total_msg_),
         update_rate_(ENCODER_UPDATE_HZ),
-        update_rate_debug_(DEBUG_HZ), {
+        update_rate_debug_(DEBUG_HZ) {
     SetupEncoderISR();
 
     nh.advertise(velocity_publisher_);
