@@ -26,19 +26,23 @@ extern RobotState currentState;
 #define SERVO_PWM 4
 
 // Steering trim
-#define STEERING_OFFSET -0.2
+#define STEERING_OFFSET 0
 
 #define THROTTLE_MIN 0.1
 #define STEERING_MIN 0.05
 
-#define LEFT_ENCODER 20
-#define RUN_BUTTON 21
-#define RIGHT_ENCODER 22
+#define ENCODER_A 6
+#define ENCODER_B 7
+#define ENCODER_C 8
 
+#define RUN_BUTTON 21
+
+
+// TODO: Measure and change vars accordingly
 // Distance from front wheel to back wheel
-const constexpr double kTrackLength = 0.3175;
+const constexpr double kTrackLength = 0.39; // 39 cm
 // Distance from left wheel to right wheel
-const constexpr double kTrackWidth = 0.24;
+const constexpr double kTrackWidth = 0.31;  // 31 cm
 // Max velocity
 const constexpr double kMaxVelocity = 3.0;
 
@@ -49,6 +53,11 @@ const constexpr double kIMUAccelVariance[2] = {10, 10};
 const constexpr double kIMUOrientationVariance = 1e-5;
 const constexpr double kIMUGyroVariance = 0.00001;
 const constexpr double kVelocityVariance = 1;
-const constexpr double kDistancePerTick = (0.079 * 3.14) / 10.0;
+
+// constants for quik maffs
+#define WHEEL_DIAMETER_METERS 0.10795  // meter
+#define STEPS_PER_REV 6                // 6 steps per full revolution of rotor
+constexpr double GEAR_RATIO = 87.0 / 18.0; // gear ratio (87 teeth on big gear / 18 teeth on small gear)
+#define BIG_GEAR_TO_WHEEL_RATIO 3      // this accounts for the differential afaik
 
 #endif
