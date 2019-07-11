@@ -4,8 +4,8 @@
 
 static bool encoder_isr_init = false;
 
-enum state {A,B,C};
-volatile enum state encoder_state;
+enum State {A,B,C};
+volatile enum State encoder_state;
 volatile static long int encoder_total = 0;
 static long int encoder_last_total = 0;
 static int encoder_delta = 0;
