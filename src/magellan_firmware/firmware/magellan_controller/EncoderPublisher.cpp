@@ -2,12 +2,10 @@
 #include <Arduino.h>
 #include "config.h"
 
-// TODO: Run formatit.sh
-
 static bool encoder_isr_init = false;
 
-// TODO: Create enum to make pretty
-volatile static int last_isr = 0;                           // 1=A, 2=B, 3=C - Using this to check last phase
+enum state {A,B,C};
+volatile enum state encoder_state;
 volatile static long int encoder_total = 0;
 static long int encoder_last_total = 0;
 static int encoder_delta = 0;
@@ -16,38 +14,38 @@ static int encoder_delta = 0;
 // backwards would go A B C A B C ...
 static void isr_A() {
     // if last phase triggered was B, increment; else decrement (because we went backwards)
-    if (last_isr == 2) {
+    if (encoder_state == B) {
         encoder_total++;
     }
     else{
         encoder_total--;
     }
 
-    last_isr = 1;
+    encoder_state = A;
 }
 
 static void isr_B() {
     // if last phase triggered was C, increment; else decrement (backwards)
-    if (last_isr == 3) {
+    if (encoder_state == C) {
         encoder_total++;
     }
     else{
         encoder_total--;
     }
 
-    last_isr = 2;
+    encoder_state = B;
 }
 
 static void isr_C() {
     // if last phase triggered was A, increment; else decrement (backwards)
-    if (last_isr == 1) {
+    if (encoder_state == A) {
         encoder_total++;
     }
     else{
         encoder_total--;
     }
 
-    last_isr = 3;
+    encoder_state = C;
 }
 
 static void SetupEncoderISR() {
@@ -114,7 +112,6 @@ double EncoderPublisher::compute_distance(double steps) {
     return steps;
 }
 
-// TODO: Test velocity accuracy with ekf pos
 // pass encoder_delta
 double EncoderPublisher::compute_velocity(double delta) {
     delta = delta / STEPS_PER_REV;                   // 6 delta per revolution (motor)

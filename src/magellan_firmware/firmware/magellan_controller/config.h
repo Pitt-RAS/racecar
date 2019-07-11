@@ -53,6 +53,11 @@ const constexpr double kIMUAccelVariance[2] = {10, 10};
 const constexpr double kIMUOrientationVariance = 1e-5;
 const constexpr double kIMUGyroVariance = 0.00001;
 const constexpr double kVelocityVariance = 1;
-const constexpr double kDistancePerTick = (0.079 * 3.14) / 10.0;
+
+// constants for quik maffs
+#define WHEEL_DIAMETER_METERS 0.10795  // meter
+#define STEPS_PER_REV 6                // 6 steps per full revolution of rotor
+constexpr double GEAR_RATIO = 87 / 18; // gear ratio (87 teeth on big gear / 18 teeth on small gear)
+#define BIG_GEAR_TO_WHEEL_RATIO 3      // this accounts for the differential afaik
 
 #endif
