@@ -15,6 +15,7 @@ _HSV_COLOR_RANGES = {
     _YELLOW: (np.array([16, 50, 50], dtype=np.uint8), np.array([45, 255, 255], dtype=np.uint8))
 }
 
+
 def predominant_rgb_color(img, ymin, xmin, ymax, xmax):
     crop = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[ymin:ymax, xmin:xmax]
     best_color, highest_pxl_count = None, -1
@@ -26,10 +27,12 @@ def predominant_rgb_color(img, ymin, xmin, ymax, xmax):
             highest_pxl_count = pxl_count
     return _COLORS[best_color]
 
+
 def add_rectangle_with_text(image, ymin, xmin, ymax, xmax, color, text):
     cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 5)
     cv2.putText(image, text, (int(xmin), int(ymin) - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2,
-                cv2.LINE_AA)   
+                cv2.LINE_AA)
+
 
 def resize_width_keeping_aspect_ratio(image, desired_width, interpolation=cv2.INTER_AREA):
     (h, w) = image.shape[:2]
