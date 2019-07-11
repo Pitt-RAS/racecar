@@ -1,7 +1,9 @@
+#!/usr/bin/env python
 from __future__ import division
 
-import logging
+import argparse
 import logging.config
+import os
 import time
 
 import cv2
@@ -14,17 +16,38 @@ from utils import tf_utils
 
 logging.config.fileConfig('logging.ini')
 
-VIDEO_PATH = 'testdata/sample_video.mp4'
 FROZEN_GRAPH_PATH = 'models/ssd_mobilenet_v1/frozen_inference_graph.pb'
 
-OUTPUT_WINDOW_WIDTH = 640  # Use None to use the original size of the image
-DETECT_EVERY_N_SECONDS = None  # Use None to perform detection for each frame
-
-# TUNE ME
-CROP_WIDTH = CROP_HEIGHT = 600
-CROP_STEP_HORIZONTAL = CROP_STEP_VERTICAL = 600 - 20  # no cone bigger than 20px
 SCORE_THRESHOLD = 0.5
 NON_MAX_SUPPRESSION_THRESHOLD = 0.5
+
+
+def ispath(path):
+    if not os.path.exists(path):
+        raise argparse.ArgumentTypeError('No such file or directory: ' + path)
+    else:
+        return path
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--image',
+                    required=True,
+                    dest='image_path',
+                    type=ispath,
+                    help='Path to the image')
+parser.add_argument('--output-dir',
+                    required=True,
+                    dest='output_dir',
+                    type=ispath,
+                    help='Directory to save the image with the detections', )
+parser.add_argument('-c', '--crop-size', dest='crop_size', type=int,
+                    help='Size of (square) crops to divide the image '
+                         'before the detection')
+args = parser.parse_args()
+
+image_path = args.image_path
+output_dir = args.output_dir
+crop_size = args.crop_size
 
 
 def main():
@@ -32,92 +55,59 @@ def main():
     detection_graph = tf_utils.load_model(FROZEN_GRAPH_PATH)
 
     # Read video from disk and count frames
-    cap = cv2.VideoCapture(VIDEO_PATH)
-
-    fps = cap.get(cv2.CAP_PROP_FPS)
-
-    CROP_WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    CROP_HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    img = cv2.imread(args.image_path)
 
     with tf.Session(graph=detection_graph) as sess:
 
-        processed_images = 0
-        while cap.isOpened():
+        tic = time.time()
 
-            if DETECT_EVERY_N_SECONDS:
-                cap.set(cv2.CAP_PROP_POS_FRAMES,
-                        processed_images * fps * DETECT_EVERY_N_SECONDS)
+        boxes = []
 
-            ret, frame = cap.read()
-            if ret:
-                tic = time.time()
+        if crop_size:
+            crop_height = crop_width = crop_size
+            crop_step_vertical = crop_step_horizontal = crop_size - 20
+            crops, crops_coordinates = ops.extract_crops(
+                img, crop_height, crop_width,
+                crop_step_vertical, crop_step_horizontal)
 
-                # crops are images as ndarrays of shape
-                # (number_crops, CROP_HEIGHT, CROP_WIDTH, 3)
-                # crop coordinates are the ymin, xmin, ymax, xmax coordinates in
-                #  the original image
-                crops, crops_coordinates = ops.extract_crops(
-                    frame, CROP_HEIGHT, CROP_WIDTH,
-                    CROP_STEP_VERTICAL, CROP_STEP_VERTICAL)
+            detection_dict = tf_utils.run_inference_for_batch(crops, sess)
 
-                # Uncomment this if you also uncommented the two lines before
-                #  creating the TF session.
-                crops = np.array([crops[0]])
-                crops_coordinates = [crops_coordinates[0]]
+            for box_absolute, boxes_relative in zip(
+                    crops_coordinates, detection_dict['detection_boxes']):
+                boxes.extend(ops.get_absolute_boxes(
+                    box_absolute,
+                    boxes_relative[np.any(boxes_relative, axis=1)]))
 
-                detection_dict = tf_utils.run_inference_for_batch(crops, sess)
+            boxes = np.vstack(boxes)
+            boxes = ops.non_max_suppression_fast(
+                boxes, NON_MAX_SUPPRESSION_THRESHOLD)
+        else:
+            detection_dict = tf_utils.run_inference_for_batch(
+                np.expand_dims(img, axis=0), sess)
+            boxes = detection_dict['detection_boxes']
+            boxes = boxes[np.any(boxes, axis=2)]
 
-                # The detection boxes obtained are relative to each crop. Get
-                # boxes relative to the original image
-                # IMPORTANT! The boxes coordinates are in the following order:
-                # (ymin, xmin, ymax, xmax)
-                boxes = []
-                for box_absolute, boxes_relative in zip(
-                        crops_coordinates, detection_dict['detection_boxes']):
-                    boxes.extend(ops.get_absolute_boxes(
-                        box_absolute,
-                        boxes_relative[np.any(boxes_relative, axis=1)]))
-                if boxes:
-                    boxes = np.vstack(boxes)
+        boxes_scores = detection_dict['detection_scores']
+        boxes_scores = boxes_scores[np.nonzero(boxes_scores)]
 
-                # Remove overlapping boxes
-                boxes = ops.non_max_suppression_fast(
-                    boxes, NON_MAX_SUPPRESSION_THRESHOLD)
+        for box, score in zip(boxes, boxes_scores):
+            if score > SCORE_THRESHOLD:
+                ymin, xmin, ymax, xmax = box
+                color_detected_rgb = cv_utils.predominant_rgb_color(
+                    img, ymin, xmin, ymax, xmax)
+                text = '{:.2f}'.format(score)
+                cv_utils.add_rectangle_with_text(
+                    img, ymin, xmin, ymax, xmax,
+                    color_detected_rgb, text)
 
-                # Get scores to display them on top of each detection
-                boxes_scores = detection_dict['detection_scores']
-                boxes_scores = boxes_scores[np.nonzero(boxes_scores)]
+        toc = time.time()
+        processing_time_ms = (toc - tic) * 1000
+        logging.debug('Detected {} objects in {:.2f} ms'.format(
+            len(boxes), processing_time_ms))
 
-                for box, score in zip(boxes, boxes_scores):
-                    if score > SCORE_THRESHOLD:
-                        ymin, xmin, ymax, xmax = box
-                        color_detected_rgb = cv_utils.predominant_rgb_color(
-                            frame, ymin, xmin, ymax, xmax)
-                        text = '{:.2f}'.format(score)
-                        cv_utils.add_rectangle_with_text(
-                            frame, ymin, xmin, ymax, xmax,
-                            color_detected_rgb, text)
-
-                if OUTPUT_WINDOW_WIDTH:
-                    frame = cv_utils.resize_width_keeping_aspect_ratio(
-                        frame, OUTPUT_WINDOW_WIDTH)
-
-                cv2.imshow('Detection result', frame)
-                cv2.waitKey(1)
-                processed_images += 1
-
-                toc = time.time()
-                processing_time_ms = (toc - tic) * 1000
-                logging.debug(
-                    'Detected {} objects in {} images in {:.2f} ms'.format(
-                        len(boxes), len(crops), processing_time_ms))
-
-            else:
-                # No more frames. Break the loop
-                break
-
-    cap.release()
-    cv2.destroyAllWindows()
+        input_image_filename = os.path.splitext(os.path.basename(image_path))[0]
+        output_filename = '{}-detection.jpg'.format(input_image_filename)
+        cv2.imwrite(os.path.join(output_dir, output_filename), img)
 
 
 if __name__ == '__main__':
