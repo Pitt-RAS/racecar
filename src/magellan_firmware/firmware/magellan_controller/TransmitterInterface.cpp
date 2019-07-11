@@ -16,24 +16,25 @@ TransmitterInterface::TransmitterInterface(ros::NodeHandle& nh) :
 void TransmitterInterface::Update() {
     if ( r9_.read(&channels_[0], &fail_safe_, &lost_frame_) ) {
         enabled_ = channels_[4] > 1500;
-        autonomous_ = channels_[5] > 1500;
+        autonomous_ = channels_[7] > 1500;
         user_ = channels_[6];
 
         // Fail safe is only set if the radio disconnects
         // This watchdog handles if the receiver disconnects
         watchdog_.Feed();
 
-        throttle_percent_ = channels_[2] - 172;
+        throttle_percent_ = channels_[0] - 172;
         // Scale 0 to positive 1
         throttle_percent_ /= 1640;
 
         // Center around 0
         throttle_percent_ -= 0.5;
+        throttle_percent_ *= 2;
 
-        steering_angle_ = channels_[0] - 1000;
+        steering_angle_ = channels_[1] - 1000;
         // Scale -90 to +90
         steering_angle_ /= 828;
-        steering_angle_ *= -90;
+        steering_angle_ *= 90;
     }
 }
 

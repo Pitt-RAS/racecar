@@ -1,9 +1,8 @@
-# magellan-2018
-Repository for Pitt RAS' Magellan Team's code.
+# racecar
 
-![Magellan](https://github.com/Pitt-RAS/magellan-2018/blob/master/resources/magellan.jpg)
+Repository for Pitt RAS' Autonomous Raceacar Platform
 
-First Place, 2019 National Robotics Challenge - Autonomous Vehicle Challenge
+The main purpose behind this repository is to create a umbrella code base that can be applied to a wide range of autonomous vehicle competitions. This code is based off of the Magellan code stack (https://github.com/Pitt-RAS/magellan-2018)
 
 ## Deployment Scripts
 
