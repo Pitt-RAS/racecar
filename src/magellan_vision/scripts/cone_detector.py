@@ -82,6 +82,13 @@ def main():
                 if boxes:
                     boxes = np.vstack(boxes)
 
+                # prints [ymin, xmin, ymax, xmax] for the detected boxes
+                print("bounding box coordinates" + str(boxes))
+
+                ## TODO: change bounding boxes definition so that it is array [ymin, xmin, ymax, xmax] instead of [ymin xmin ymax xmax] ##
+                ## TODO: apply formula (((xmin + xmax)/2), ((ymin + ymax)/2) to get center of bounding box ## 
+                ## TODO: publish the center of the bounding boxes to a rostopic
+                
                 # Remove overlapping boxes
                 boxes = ops.non_max_suppression_fast(
                     boxes, NON_MAX_SUPPRESSION_THRESHOLD)
@@ -108,11 +115,11 @@ def main():
                 cv2.waitKey(1)
                 processed_images += 1
 
-                toc = time.time()
-                processing_time_ms = (toc - tic) * 1000
-                logging.debug(
-                    'Detected {} objects in {} images in {:.2f} ms'.format(
-                        len(boxes), len(crops), processing_time_ms))
+                #toc = time.time()
+                #processing_time_ms = (toc - tic) * 1000
+                #logging.debug(
+                    #'Detected {} objects in {} images in {:.2f} ms'.format(
+                        #len(boxes), len(crops), processing_time_ms))
 
             else:
                 # No more frames. Break the loop
