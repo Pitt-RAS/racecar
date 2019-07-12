@@ -4,7 +4,7 @@ from __future__ import division
 
 import logging
 import logging.config
-#import time
+# import time
 
 import cv2
 import numpy as np
@@ -87,7 +87,7 @@ def main():
 
                 # TODO: change bounding boxes definition so that it is array
                 # [ymin, xmin, ymax, xmax] instead of [ymin xmin ymax xmax]
-                # TODO: apply formula (((xmin + xmax)/2), ((ymin + ymax)/2) to get center of bounding box 
+                # TODO: apply formula (((xmin + xmax)/2), ((ymin + ymax)/2) to get center of bounding box
                 # TODO: publish the center of the bounding boxes to a rostopic
 
                 # Remove overlapping boxes
@@ -119,8 +119,8 @@ def main():
                 # toc = time.time()
                 # processing_time_ms = (toc - tic) * 1000
                 # logging.debug(
-                    # 'Detected {} objects in {} images in {:.2f} ms'.format(
-                        # len(boxes), len(crops), processing_time_ms))
+                # 'Detected {} objects in {} images in {:.2f} ms'.format(
+                # len(boxes), len(crops), processing_time_ms))
 
             else:
                 # No more frames. Break the loop
