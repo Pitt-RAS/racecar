@@ -52,7 +52,7 @@ def main():
 
             ret, frame = cap.read()
             if ret:
-                tic = time.time()
+                #tic = time.time()
 
                 # crops are images as ndarrays of shape
                 # (number_crops, CROP_HEIGHT, CROP_WIDTH, 3)
@@ -85,9 +85,10 @@ def main():
                 # prints [ymin, xmin, ymax, xmax] for the detected boxes
                 print("bounding box coordinates" + str(boxes))
 
-                ## TODO: change bounding boxes definition so that it is array [ymin, xmin, ymax, xmax] instead of [ymin xmin ymax xmax] ##
-                ## TODO: apply formula (((xmin + xmax)/2), ((ymin + ymax)/2) to get center of bounding box ## 
-                ## TODO: publish the center of the bounding boxes to a rostopic
+                # TODO: change bounding boxes definition so that it is array 
+                # [ymin, xmin, ymax, xmax] instead of [ymin xmin ymax xmax]
+                # TODO: apply formula (((xmin + xmax)/2), ((ymin + ymax)/2) to get center of bounding box 
+                # TODO: publish the center of the bounding boxes to a rostopic
                 
                 # Remove overlapping boxes
                 boxes = ops.non_max_suppression_fast(
