@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="magellan_motion" type="force_cmd" name="force_cmd_publisher" />
+
+	<!--Add fake object at x = 2, y=1. Link fake_point to odom -->
+	<node pkg="tf2_ros" type="static_transform_publisher" name="fake_waypoint" args="2 1 0 0 0 0 odom fake_point" />
+</launch>
