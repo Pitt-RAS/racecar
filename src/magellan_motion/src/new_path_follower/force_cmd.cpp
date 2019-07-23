@@ -56,21 +56,28 @@ int main(int argc, char** argv){
 	private_nh.getParam("rate", rate_hz);
 	ros::Rate rate(rate_hz);
 
-	/*
+	
 	// Setup transform listener
 	tf2_ros::Buffer tf_buffer;
 	tf2_ros::TransformListener tf_listener(tf_buffer);
 
-	//waypoint is called fake_point
+	//waypoint is called fake_waypoint
 
 
 	ros::Time now = ros::Time::now();
-	tf_buffer.waitForTransform("base_link", "fake_point", now, ros::Duration(3.0));
-
-	auto transform = tf_buffer.lookupTransform("base_link", "fake_point", ros::Time::now(), ros::Duration(10.0));
-	br.sendTransform(transform);
-	*/
+	if(tf_buffer.canTransform("base_link", "fake_waypoint", now, ros::Duration(3.0))){
+		auto transform = tf_buffer.lookupTransform("base_link", "fake_waypoint", now);
+		br.sendTransform(transform);
+	}
+	
 	while(ros::ok()){
+		ros::Time now = ros::Time::now();
+		if(tf_buffer.canTransform("base_link", "fake_waypoint", now, ros::Duration(3.0))){
+			auto transform = tf_buffer.lookupTransform("base_link", "fake_waypoint", now);
+			//transform.header.frame_id = "odom";
+			printDebug(transform.header.frame_id, debug_publisher);
+			//br.sendTransform(transform);
+		}
 
 		//updateRobot(velocity_publisher, turning_radius_publisher, 0.2);
 
