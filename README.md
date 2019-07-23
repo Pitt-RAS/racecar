@@ -1,6 +1,6 @@
 Steps to use sim:
 
-1. Set ROBOT_IP to the desired target
+1. Set ROBOT_IP to the desired target in robot.env
 2. Change noah to the target username everywhere in robot.sh
 3. ./robot.sh deploy
 
