@@ -31,8 +31,9 @@ void updateNextPoint(float tolerance);
 void updateTheta(float tolerance, float constant);
 void odom_ekf_callback(nav_msgs::Odometry::ConstPtr msg);
 void updateEuclideanDistance();
-void updateRobot(ros::Publisher velocity_publisher, ros::Publisher turning_radius_publisher);
+void updateRobot(ros::Publisher velocity_publisher, ros::Publisher turning_radius_publisher, float tolerance);
 std::string floatToString (float number);
+void setVelocity(float velocity);
 
 
 
@@ -70,22 +71,34 @@ int main(int argc, char** argv){
 	br.sendTransform(transform);
 	*/
 	while(ros::ok()){
-		updateEuclideanDistance();
-		if(euclideanDistance > distanceTolerance){
-			updateRobot(velocity_publisher, turning_radius_publisher);
-		}
 
-		updateTheta(0.1, 6);	//TODO: determine constant so that smallest angle * constant = lowest cmd_turn value and visa versa
-		updateNextPoint(.2);
-		
-		printDebug(floatToString(current_y) + " <-y theta-> " + floatToString(current_theta), debug_publisher);
+		//updateRobot(velocity_publisher, turning_radius_publisher, 0.2);
 
+		//printDebug(floatToString(cmd_vel.data) + " <-cmd_vel theta-> " + floatToString(current_theta), debug_publisher);
+		cmd_turn.data = 1;
+		cmd_vel.data = 1;
+		velocity_publisher.publish(cmd_vel);
+		turning_radius_publisher.publish(cmd_turn);
 		ros::spinOnce();
 		rate.sleep();
 	}
 }
 
-void updateRobot(ros::Publisher velocity_publisher, ros::Publisher turning_radius_publisher){
+void updateRobot(ros::Publisher velocity_publisher, ros::Publisher turning_radius_publisher, float tolerance){
+	updateEuclideanDistance();
+	//do some kinematics for this
+	if(euclideanDistance > 5){
+		setVelocity(1);
+	}
+	if(euclideanDistance > 2 && euclideanDistance < 5){
+		setVelocity(0.5);
+	}
+	if(euclideanDistance <= tolerance){
+		setVelocity(0);
+	}
+
+	updateTheta(0.05, 6); //TODO: determine constant so that smallest angle * constant = lowest cmd_turn value and visa versa
+	updateNextPoint(tolerance);
 	velocity_publisher.publish(cmd_vel);
 	turning_radius_publisher.publish(cmd_turn);
 }
@@ -96,12 +109,27 @@ void updateNextPoint(float tolerance){
 		goal_x = points[pointTick][0];
 		goal_y = points[pointTick][1];
 	}
+	goal_x = 3;
+	goal_y = 2;
 }
 
 void updateTheta(float tolerance, float constant){
-	if(abs(goal_theta - current_theta) > tolerance);{
-	cmd_turn.data = constant * (goal_theta - current_theta);
+
+	if(abs(goal_theta - current_theta) > tolerance){
+		float theta_difference = current_theta - goal_theta;
+		if(theta_difference > 0){
+			cmd_turn.data = 1;
+		}
+		if(theta_difference < 0){
+			cmd_turn.data = -1;
+		}
+	}else{
+		cmd_turn.data = 0;
 	}
+}
+
+void setVelocity(float velocity){
+	cmd_vel.data = velocity;
 }
 
 void printDebug(std::string ting, ros::Publisher debug_publisher){
