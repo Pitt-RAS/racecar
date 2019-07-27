@@ -55,6 +55,7 @@ case $1 in
         docker build -t ${IMAGE_NAME}:dev .
         $0 start
 
+	docker system prune
         ./imageprune.py
     ;;
 

@@ -76,7 +76,7 @@ int main(int argc, char** argv){
 			auto transform = tf_buffer.lookupTransform("base_link", "fake_waypoint", now);
 			//transform.header.frame_id = "odom";
 			printDebug(transform.header.frame_id, debug_publisher);
-			//br.sendTransform(transform);
+			br.sendTransform(transform);
 		}
 
 		//updateRobot(velocity_publisher, turning_radius_publisher, 0.2);
