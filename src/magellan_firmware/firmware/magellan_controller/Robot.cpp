@@ -43,7 +43,7 @@ void Robot::AutonomousInit() {
 
 void Robot::AutonomousPeriodic() {
     drivetrain_.SetThrottlePercent(throttle_percent_);
-    drivetrain_.SetSteeringAngle(-steering_angle_);
+    drivetrain_.SetSteeringAngle(steering_angle_);
 }
 
 void Robot::DisabledInit() {
