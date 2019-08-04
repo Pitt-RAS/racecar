@@ -58,7 +58,6 @@ Pipfile*
 
 # Virtualenv
 local/
-include/
 share/
 
 # Weights (too large for github)
