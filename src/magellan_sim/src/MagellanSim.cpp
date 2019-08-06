@@ -77,9 +77,9 @@ void MagellanSim::UpdateYaw() {
     imu_msg.angular_velocity_covariance[4] = 1e-9;
     imu_msg.angular_velocity_covariance[8] = 1e-9;
     if(commanded_radius_ > 0){
-        imu_angular_velocity.z = 1;
+        imu_angular_velocity.z = -0.75;
     }else if(commanded_radius_ < 0){
-        imu_angular_velocity.z = -1;
+        imu_angular_velocity.z = 0.75;
 
     }else if(commanded_radius_ == 0){
         imu_angular_velocity.z = 0;
