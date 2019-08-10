@@ -7,10 +7,11 @@ import rospy
 # import sys
 # import roslib
 from cv_bridge import CvBridge, CvBridgeError
-# from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
+
 
 class Obstacle_Detection:
     def __init__(self):
@@ -18,6 +19,7 @@ class Obstacle_Detection:
     	self.laser_sub = rospy.Subscriber("/camera/scan",LaserScan,self.laser_callback)
     	self.image_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.camera_callback)
         self.distance_pub = rospy.Publisher("/cameron/distances_of_obstacles",Float32,queue_size=10)
+        self.midpoint_pub = rospy.Publisher("/cameron/midpoint", Point, queue_size = 10)
         self.bridge_obj = CvBridge()
 
     def laser_callback(self,data):
@@ -40,6 +42,13 @@ class Obstacle_Detection:
             obstacle.dist = data.ranges[int(obstacle.x_center)]
             print(str(obstacle.dist))
             self.distance_pub.publish(obstacle.dist)
+        if len(self.obstacle_list) == 2:
+        	point = Point()
+        	point.x = obstacle_list[0].dist
+        	point.y = 0
+        	point.z = 0
+        	self.midpoint_pub.publish(point)
+
 
     def get_obstacles(self,image):
     	self.obstacle_list = []
@@ -95,7 +104,6 @@ class Obstacle:
         self.dist = -1.0  # default to -1 so we can check later if the distance has been verified
 
 def main():
-    print("FUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCK")
     center_of_cones_obj = Obstacle_Detection()
     rospy.init_node('obstacle_avoidance_node', anonymous=True)
     rate = rospy.Rate(5)
