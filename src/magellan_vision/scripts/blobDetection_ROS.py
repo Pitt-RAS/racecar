@@ -13,28 +13,36 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
 
 class Obstacle_Detection:
-	def __init__(self):
-		self.obstacle_list = []
-		self.laser_sub = rospy.Subscriber("/camera/scan",LaserScan,self.callback)
-		self.image_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.camera_callback)
+    def __init__(self):
+    	self.obstacle_list = []
+    	self.laser_sub = rospy.Subscriber("/camera/scan",LaserScan,self.laser_callback)
+    	self.image_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.camera_callback)
         self.distance_pub = rospy.Publisher("/cameron/distances_of_obstacles",Float32,queue_size=10)
         self.bridge_obj = CvBridge()
 
-    def callback(self,data):
+    def laser_callback(self,data):
+        if len(self.obstacle_list) != 0:
+            self.get_distances(data)
+        else:
+            print("No obstacles in obstalce_list")
+
+    def camera_callback(self,data):
     	try:
             cv_image = self.bridge_obj.imgmsg_to_cv2(data, desired_encoding="bgr8")
         except CvBridgeError as e:
             print(e)
-            # TODO Make a bailout here        
+            # TODO Make a bailout here
+        self.get_obstacles(cv_image)        
 
-    def getDistances(self, data):
+    def get_distances(self, data):
         # Make method that gets the distance of a given (x,y) point from the LaserScan
         for i, obstacle in enumerate(self.obstacle_list):
-            obstacle.dist = data.ranges[obstacle.x_center]
+            obstacle.dist = data.ranges[int(obstacle.x_center)]
+            print(str(obstacle.dist))
             self.distance_pub.publish(obstacle.dist)
 
-    def get_obstacles(self,data):
-    	self.obstacle_list.clear()
+    def get_obstacles(self,image):
+    	self.obstacle_list = []
     	#Set params for blob detection
     	params = cv2.SimpleBlobDetector_Params()
         params.filterByArea = True
@@ -56,9 +64,9 @@ class Obstacle_Detection:
         lower_yellow = np.array([0,153,153])
         # find the colors within the specified boundaries and apply
         # the mask
-        red_mask = cv2.inRange(cv_image, lower_red, upper_red)
-        yellow_mask = cv2.inRange(cv_image,lower_yellow,upper_yellow)
-        blue_mask = cv2.inRange(cv_image,lower_blue,upper_blue)
+        red_mask = cv2.inRange(image, lower_red, upper_red)
+        yellow_mask = cv2.inRange(image,lower_yellow,upper_yellow)
+        blue_mask = cv2.inRange(image,lower_blue,upper_blue)
         # Detect keypoints
         red_keypoints = detector.detect(red_mask)
         blue_keypoints = detector.detect(blue_mask)
@@ -66,13 +74,13 @@ class Obstacle_Detection:
         # Make one list of call keypoints
         keypoints = [red_keypoints, blue_keypoints, yellow_keypoints]
         for i in range(0,len(red_keypoints)):
-        	cone = cone = Obstacle("cone", "red", red_keypoints[i].pt[0], red_keypoints[i].pt[1])
+        	cone = Obstacle("cone", "red", red_keypoints[i].pt[0], red_keypoints[i].pt[1])
         	self.obstacle_list.append(cone)
         for i in range(0,len(blue_keypoints)):
-        	cone = cone = Obstacle("cone", "blue", blue_keypoints[i].pt[0], blue_keypoints[i].pt[1])
+        	cone = Obstacle("cone", "blue", blue_keypoints[i].pt[0], blue_keypoints[i].pt[1])
         	self.obstacle_list.append(cone)
         for i in range(0,len(yellow_keypoints)):
-        	cone = cone = Obstacle("cone", "yellow", yellow_keypoints[i].pt[0], yellow_keypoints[i].pt[1])
+        	cone = Obstacle("cone", "yellow", yellow_keypoints[i].pt[0], yellow_keypoints[i].pt[1])
         	self.obstacle_list.append(cone)
 
 
@@ -84,10 +92,11 @@ class Obstacle:
         self.color_of_obstacle = color_of_obstacle
         self.x_center = x_center
         self.y_center = y_center
-        self.dist = -1  # default to -1 so we can check later if the distance has been verified
+        self.dist = -1.0  # default to -1 so we can check later if the distance has been verified
 
 def main():
-    center_of_cones_obj = CenterOfCones(center_of_cones_obj)
+    print("FUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCK")
+    center_of_cones_obj = Obstacle_Detection()
     rospy.init_node('obstacle_avoidance_node', anonymous=True)
     rate = rospy.Rate(5)
     while not rospy.is_shutdown():
