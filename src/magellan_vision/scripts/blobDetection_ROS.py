@@ -20,7 +20,13 @@ class Obstacle_Detection:
 		self.image_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.camera_callback)
         self.distance_pub = rospy.Publisher("/cameron/distances_of_obstacles",Float32,queue_size=10)
         self.bridge_obj = CvBridge()
-        
+
+    def callback(self,data):
+    	try:
+            cv_image = self.bridge_obj.imgmsg_to_cv2(data, desired_encoding="bgr8")
+        except CvBridgeError as e:
+            print(e)
+            # TODO Make a bailout here        
 
     def getDistances(self, data):
         # Make method that gets the distance of a given (x,y) point from the LaserScan
@@ -80,18 +86,7 @@ class Obstacle:
         self.x_center = x_center
         self.y_center = y_center
         self.dist = -1  # default to -1 so we can check later if the distance has been verified
-
-
-class CenterOfCones(object):
-
-    def camera_callback(self, data):
-        try:
-            cv_image = self.bridge_obj.imgmsg_to_cv2(data, desired_encoding="bgr8")
-        except CvBridgeError as e:
-            print(e)
-            # TODO Make a bailout here
-
-
+        
 def main():
     center_of_cones_obj = CenterOfCones(center_of_cones_obj)
     rospy.init_node('obstacle_avoidance_node', anonymous=True)
