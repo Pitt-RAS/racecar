@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 # Colors are formatted in bgr8 
-
 import cv2
 import numpy as np
 import rospy
@@ -86,7 +85,7 @@ class Obstacle:
         self.x_center = x_center
         self.y_center = y_center
         self.dist = -1  # default to -1 so we can check later if the distance has been verified
-        
+
 def main():
     center_of_cones_obj = CenterOfCones(center_of_cones_obj)
     rospy.init_node('obstacle_avoidance_node', anonymous=True)
