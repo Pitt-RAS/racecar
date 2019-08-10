@@ -10,21 +10,13 @@ from sensor_msgs.msg import Image
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
 
+class Obstacle_Detection:
 
-class List_Of_Obstacles:
-
-    def __init__(self):
-        self.obstacle_list = []
-        self.laser_sub = rospy.Subscriber("/camera/scan",LaserScan,self.callback)
+	def __init__(self):
+		self.obstacle_list = []
+		self.laser_sub = rospy.Subscriber("/camera/scan",LaserScan,self.callback)
         self.distance_pub = rospy.Publisher("/cameron/distances_of_obstacles",Float32,queue_size=10)
 
-    def add(self, object):
-        self.obstacle_list.append(object)
-
-    def clearList(self):
-        self.obstacle_list = []
-
-    #(TODO)
     def callback(self,data):
         #Make method that gets the distance of a given (x,y) point from the LaserScan
         for i,obstacle in enumerate(self.obstacle_list):
@@ -70,12 +62,20 @@ class CenterOfCones(object):
 
         obs_list = List_Of_Obstacles()
         # Set upper and lower boundaries for red
-        lower_red = np.array([7, 5, 80])
-        upper_red = np.array([70, 76, 220])
+        lower_red = np.array([0, 0, 153])
+        upper_red = np.array([102, 102, 225])
+        lower_blue = np.array([100,0,0])
+        upper_blue = np.array([255,102,102])
+        upper_yellow = np.array([102,255,255])
+        lower_yellow = np.array([0,153,153])
         # find the colors within the specified boundaries and apply
         # the mask
-        mask = cv2.inRange(cv_image, lower_red, upper_red)
-        keypoints = detector.detect(mask)
+        red_mask = cv2.inRange(cv_image, lower_red, upper_red)
+        yellow_mask = cv2.inRange(cv_image,lower_yellow,upper_yellow)
+        blue_mask = cv2.inRange(cv_image,lower_blue,upper_blue)
+        red_keypoints = detector.detect(red_mask)
+        blue_keypoints = detector.detect(blue_mask)
+        yellow_keypoints = detector.detect(yellow_mask)
         obs_list.clearList()
         for i in range(0,len(keypoints)):
             cone = Obstacle("cone","red",keypoints[i].pt[0],keypoints[i].pt[1])
