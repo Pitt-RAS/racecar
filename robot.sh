@@ -5,7 +5,7 @@ pushd $(dirname $BASH_SOURCE) > /dev/null
 
 source robot.env
 
-export DOCKER_HOST="ssh://noah@${ROBOT_IP}"
+export DOCKER_HOST="ssh://ras@${ROBOT_IP}"
 
 case $1 in
     start)
@@ -38,7 +38,7 @@ case $1 in
     ;;
 
     shutdown)
-        ssh noah@${ROBOT_IP} "sudo poweroff" &> /dev/nulli
+        ssh ras@${ROBOT_IP} "sudo poweroff" &> /dev/nulli
     ;;
 
     shell)
@@ -75,7 +75,7 @@ case $1 in
     ;;
 
     ssh)
-        ssh noah@${ROBOT_IP}
+        ssh ras@${ROBOT_IP}
 	;;
 
     *)
