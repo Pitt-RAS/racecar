@@ -5,7 +5,19 @@ pushd $(dirname $BASH_SOURCE) > /dev/null
 
 source robot.env
 
-export DOCKER_HOST="ssh://ras@${ROBOT_IP}"
+if [[ "$1" == "--local" ]]; then
+    export LOCAL=true
+    shift
+fi
+
+if [[ -n "${LOCAL}" ]]; then
+    unset DOCKER_HOST
+    ROBOT_IP="127.0.0.1"
+    DEFAULT_LAUNCH=${DEFAULT_LOCAL_LAUNCH}
+else
+    export DOCKER_HOST="ssh://ras@${ROBOT_IP}"
+    DEFAULT_LAUNCH=${DEFAULT_ROBOT_LAUNCH}
+fi
 
 case $1 in
     start)
