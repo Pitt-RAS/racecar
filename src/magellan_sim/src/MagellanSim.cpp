@@ -16,6 +16,9 @@ MagellanSim::MagellanSim(ros::NodeHandle& nh) :
     turning_radius_publisher_ =
         node_handle_.advertise<std_msgs::Float64>("/platform/turning_radius", 1, true);
     time_ = ros::Time::now();
+    imu_publisher =
+        node_handle_.advertise<sensor_msgs::Imu>("/platform/imu", 1, true);
+    imu_seq = 0;
 }
 
 void MagellanSim::run() {
@@ -62,6 +65,36 @@ void MagellanSim::UpdateYaw() {
     std_msgs::Float64 course_msg;
     course_msg.data = commanded_radius_;
     turning_radius_publisher_.publish(course_msg);
+
+    //mine
+    sensor_msgs::Imu imu_msg;
+    geometry_msgs::Vector3 imu_angular_velocity;
+    double imu_angular_velocity_covariance[9] = {1e-9,     0,      0,
+                                                 0,        1e-9,   0,
+                                                 0,        0,      1e-9};
+
+    imu_msg.angular_velocity_covariance[0] = 1e-9;
+    imu_msg.angular_velocity_covariance[4] = 1e-9;
+    imu_msg.angular_velocity_covariance[8] = 1e-9;
+    if (commanded_radius_ > 0) {
+        imu_angular_velocity.z = -0.75;
+    }else if (commanded_radius_ < 0) {
+        imu_angular_velocity.z = 0.75;
+
+    }else if (commanded_radius_ == 0) {
+        imu_angular_velocity.z = 0;
+    }
+    imu_msg.angular_velocity = imu_angular_velocity;
+
+    std_msgs::Header imu_header;
+    imu_header.stamp = time_.now();
+    imu_header.frame_id = "base_link";
+    imu_header.seq = imu_seq;
+    imu_seq++;
+    imu_msg.header = imu_header;
+
+    imu_publisher.publish(imu_msg);
+
 }
 
 /*

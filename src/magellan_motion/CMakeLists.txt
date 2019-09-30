@@ -136,6 +136,10 @@ add_executable(path_planner_node
     src/path_planner/planner.cpp
 )
 
+add_executable(force_cmd src/new_path_follower/force_cmd.cpp)
+
+target_link_libraries(force_cmd ${catkin_LIBRARIES})
+
 add_dependencies(path_planner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against

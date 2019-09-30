@@ -21,6 +21,9 @@ devel_isolated/
 /cfg/cpp/
 /cfg/*.py
 
+*.mp4
+*.mkv
+
 # Ignore generated docs
 *.dox
 *.wikidoc

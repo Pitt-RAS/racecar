@@ -50,7 +50,7 @@ case $1 in
     ;;
 
     shutdown)
-        ssh ras@${ROBOT_IP} "sudo poweroff" &> /dev/null
+        ssh ras@${ROBOT_IP} "sudo poweroff" &> /dev/nulli
     ;;
 
     shell)
@@ -67,6 +67,7 @@ case $1 in
         docker build -t ${IMAGE_NAME}:dev .
         $0 start
 
+	docker system prune
         ./imageprune.py
     ;;
 
@@ -87,7 +88,7 @@ case $1 in
 
     ssh)
         ssh ras@${ROBOT_IP}
-    ;;
+	;;
 
     *)
         echo "Usage: robot.sh [start|stop|deploy|watch|shell|deploy-teensy|ssh]"
