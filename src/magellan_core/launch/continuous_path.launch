@@ -1,0 +1,3 @@
+<launch> 
+    <node name="continuous_path" pkg="magellan_core" type="continuous_path.py" />
+</launch>
