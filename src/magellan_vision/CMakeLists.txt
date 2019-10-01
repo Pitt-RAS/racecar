@@ -14,9 +14,7 @@ cv_bridge
 sensor_msgs
 rospy
 std_msgs
-cv2
 roslib
-
 )
 
 find_package(OpenCV)
