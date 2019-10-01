@@ -60,7 +60,7 @@ class Obstacle_Detection:
             self.distance_pub.publish(obstacle.dist)
         if len(self.obstacle_list) == 2:
             point = Point()
-            point.x = obstacle_list[0].dist
+            point.x = self.obstacle_list[0].dist
             point.y = 0
             point.z = 0
             self.midpoint_pub.publish(point)
@@ -92,9 +92,9 @@ class CenterOfCones(object):
         cv2.imshow("Image window", cv_image)
         cv2.waitKey(1)
 
-        params = cv2.SimpleBlobDetector_Params()
+        # params = cv2.SimpleBlobDetector_Params()
 
-    def get_obstacles(self, image):
+    def get_obstacles(self, cv_image):
         self.obstacle_list = []
         # Set params for blob detection
         params = cv2.SimpleBlobDetector_Params()
@@ -116,27 +116,20 @@ class CenterOfCones(object):
         upper_blue = np.array([255, 102, 102])
         upper_yellow = np.array([102, 255, 255])
         lower_yellow = np.array([0, 153, 153])
+
         # find the colors within the specified boundaries and apply
         # the mask
         red_mask = cv2.inRange(cv_image, lower_red, upper_red)
         yellow_mask = cv2.inRange(cv_image, lower_yellow, upper_yellow)
         blue_mask = cv2.inRange(cv_image, lower_blue, upper_blue)
-        red_keypoints = detector.detect(red_mask)
-        blue_keypoints = detector.detect(blue_mask)
-        yellow_keypoints = detector.detect(yellow_mask)
-        obs_list.clearList()
-        for i in range(0, len(keypoints)):
-            cone = Obstacle("cone", "red", keypoints[i].pt[0], keypoints[i].pt[1])
-            obs_list.add(cone)
-        red_mask = cv2.inRange(image, lower_red, upper_red)
-        yellow_mask = cv2.inRange(image, lower_yellow, upper_yellow)
-        blue_mask = cv2.inRange(image, lower_blue, upper_blue)
+
         # Detect keypoints
         red_keypoints = detector.detect(red_mask)
         blue_keypoints = detector.detect(blue_mask)
         yellow_keypoints = detector.detect(yellow_mask)
-        # Make one list of call keypoints
-        keypoints = [red_keypoints, blue_keypoints, yellow_keypoints]
+
+        obs_list.clearList()
+
         for i in range(0, len(red_keypoints)):
             cone = Obstacle("cone", "red", red_keypoints[i].pt[0], red_keypoints[i].pt[1])
             self.obstacle_list.append(cone)
@@ -150,26 +143,20 @@ class CenterOfCones(object):
     def clean_up(self):
         cv2.destroyAllWindows()
 
-# This class will become more important when we have many different obstacles that represent different things
-
-
-class Obstacle:
-
-    def __init__(self, type_of_obstacle, color_of_obstacle, x_center, y_center):
-        self.type_of_obstacle = type_of_obstacle
-        self.color_of_obstacle = color_of_obstacle
-        self.x_center = x_center
-        self.y_center = y_center
-        self.dist = -1.0  # default to -1 so we can check later if the distance has been verified
-
 
 def main():
-    center_of_cones_obj = Obstacle_Detection()
+    node = Obstacle_Detection()
     rospy.init_node('obstacle_avoidance_node', anonymous=True)
     rate = rospy.Rate(5)
+
     while not rospy.is_shutdown():
-        rospy.spin()
-        rate.sleep()
+        try:
+            rospy.spin()
+            rate.sleep()
+        except Exception:
+            rospy.logerr('BlobDetector: shutting down....')
+        finally:
+            node.clean_up()
 
 
 if __name__ == '__main__':

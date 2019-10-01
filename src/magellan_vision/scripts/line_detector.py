@@ -3,7 +3,7 @@ import numpy as np
 import time
 import math
 from statistics import mean
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 ddepth = cv2.CV_16S
 kernel_size = 3
@@ -124,7 +124,7 @@ while True:
     ret, frame = video.read()
     tic = time.time()
     height, width, channels = frame.shape
-    #print("height: {}, width: {}".format(height,width))
+    # print("height: {}, width: {}".format(height,width))
     if not ret:
         video = cv2.VideoCapture("IGVC_Video.mp4")
         continue
@@ -146,35 +146,38 @@ while True:
     linesP = cv2.HoughLinesP(abs_dst, rho=6, theta=np.pi / 60, threshold=50,
                              lines=np.array([]), minLineLength=30, maxLineGap=10)
 
-    #x_array_left = [[]]
-    #x_array_right = [[]]
+    # x_array_left = [[]]
+    # x_array_right = [[]]
     # print(x_array.shape)
-    #y_array_left = [[]]
-    #y_array_right = [[]]
+    # y_array_left = [[]]
+    # y_array_right = [[]]
     # print(y_array.shape)
 
     crop2 = crop
 
     if linesP is not None and len(linesP) > 40:
-        #processed = process_lines(linesP,crop)
+        # processed = process_lines(linesP,crop)
         # print(len(linesP))
         for line in linesP:
             for x1, y1, x2, y2 in line:
-                slope = (y2 - y1) / (x2 - x1)  # <-- Calculating the slope.
-                if math.fabs(slope) < .5:  # <-- Only consider extreme slope
+                slope = (y2 - y1) / (x2 - x1)
+                # <-- Calculating the slope.
+                if math.fabs(slope) < .5:
+                    # <-- Only consider extreme slope
                     continue
-                if x1 < frame.shape[1]/2 and x2 < frame.shape[1]/2:  # <-- If the slope is negative, left group
+                if x1 < frame.shape[1]/2 and x2 < frame.shape[1]/2:
+                    # <-- If the slope is negative, left group
                     # x_array_left.append([x1,x2])
                     # y_array_left.append([y1,y2])
                     cv2.line(crop2, (x1, y1), (x2, y2), (0, 0, 255), 3)
-                    #cv2.circle(crop, (x1, y1),(5), (0,0,255), 3)
-                    #cv2.circle(crop, (x2, y2),(5), (0,0,255), 3)
+                    # cv2.circle(crop, (x1, y1),(5), (0,0,255), 3)
+                    # cv2.circle(crop, (x2, y2),(5), (0,0,255), 3)
                 else:  # <-- Otherwise, right group.
                     # x_array_right.append([x1,x2])
                     # y_array_right.append([y1,y2])
                     cv2.line(crop2, (x1, y1), (x2, y2), (0, 255, 0), 3)
-                    #cv2.circle(crop, (x1, y1),(5), (0,255,0), 3)
-                    #cv2.circle(crop, (x2, y2),(5), (0,255,0), 3)
+                    # cv2.circle(crop, (x1, y1),(5), (0,255,0), 3)
+                    # cv2.circle(crop, (x2, y2),(5), (0,255,0), 3)
             circles = crop
             lines = crop2
 
@@ -182,15 +185,19 @@ while True:
         skipped_frames += 1
 
     cv2.imshow('Crop', crop)
-    #linesAndCircles = cv2.addWeighted(lines, 0.5, circles, 0.5,0)
-    #final = cv2.addWeighted(processed, 0.8, linesAndCircles, 0.5,0)
-    #cv2.imshow('Original', frame)
-    #cv2.imshow('Combo', final)
+    # linesAndCircles = cv2.addWeighted(lines, 0.5, circles, 0.5,0)
+    # final = cv2.addWeighted(processed, 0.8, linesAndCircles, 0.5,0)
+    # cv2.imshow('Original', frame)
+    # cv2.imshow('Combo', final)
     # print(skipped_frames)
-    #plt.plot(np.unique(x_array_right), np.poly1d(np.polyfit(x_array_right, y_array_right, 1))(np.unique(x_array_right)))
 
-    #right_line_slope,right_line_intercept = best_fit(np.asarray(x_array_right),np.asarray(y_array_right))
-    #left_line_slope,left_line_intercept = best_fit(np.asarray(x_array_left),np.asarray(y_array_left))
+    # FIXME: what is this crap, please FIX ME
+    # plt.plot(np.unique(x_array_right),
+    #          np.poly1d(np.polyfit(x_array_right, y_array_right, 1))
+    #          (np.unique(x_array_right)))
+
+    # right_line_slope,right_line_intercept = best_fit(np.asarray(x_array_right),np.asarray(y_array_right))
+    # left_line_slope,left_line_intercept = best_fit(np.asarray(x_array_left),np.asarray(y_array_left))
 
     toc = time.time()
     delta_t = toc - tic
