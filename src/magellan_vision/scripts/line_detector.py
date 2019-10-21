@@ -66,7 +66,7 @@ class Lines:
         return m, b
 
     def detect(self, cv_image):
-        #crop = cv_image[360:670, 0:1280]
+
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
         ret, thresh4 = cv2.threshold(blurred, 200, 255, cv2.THRESH_TOZERO)
@@ -91,11 +91,9 @@ class Lines:
                         continue
                     if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
                         # <-- If the slope is negative, left group
-                        #cv2.line(crop, (x1, y1), (x2, y2), (0, 0, 255), 3)
                         cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
                         cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
                     else:  # <-- Otherwise, right group.
-                        #cv2.line(crop, (x1, y1), (x2, y2), (0, 255, 0), 3)
                         cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                         cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
 
@@ -127,13 +125,13 @@ def main():
             cv2.imshow('Raw Realsense', images)
             cv2.waitKey(25)
             key = cv2.waitKey(25)
+            lines_obj = Lines()
+            lines_obj.detect(color_image)
             if key == 27:
                 go = False
                 lines_obj.clean_up()
                 cv2.destroyAllWindows()
                 break
-            lines_obj = Lines()
-            lines_obj.detect(color_image)
 
         except (KeyboardInterrupt, SystemExit):
             lines_obj.clean_up()
