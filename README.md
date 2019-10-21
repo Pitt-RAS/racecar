@@ -1,17 +1,3 @@
-Steps to use sim:
-
-1. Set ROBOT_IP to the desired target in robot.env
-2. Change noah to the target username everywhere in robot.sh
-3. ./robot.sh deploy
-
-Periodically run 
-  docker system prune
-to delete old images if imageprune.py doesn't do it's job
-#racecar 
-
-Repository for Pitt RAS' Autonomous Raceacar Platform
-
-The main purpose behind this repository is to create a umbrella code base that can be applied to a wide range of autonomous vehicle competitions. This code is based off of the Magellan code stack (https://github.com/Pitt-RAS/magellan-2018)
 
 ## Deployment Scripts
 
