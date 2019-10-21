@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import time
 import math
 from statistics import mean
 import pyrealsense2 as rs
@@ -10,13 +9,16 @@ kernel_size = 3
 skipped_frames = 0
 num_of_frames = 0
 
+
 class Obstacle:
-    def __init__(self,type_of_obstacle,color_of_obstacle,x_center,y_center):
+
+    def __init__(self, type_of_obstacle, color_of_obstacle, x_center, y_center):
         self.type_of_obstacle = type_of_obstacle
         self.color_of_obstacle = color_of_obstacle
         self.x_center = x_center
         self.y_center = y_center
-        self.dist = -1 #default to -1 so we can check later if the distance has been verified
+        self.dist = -1  # default to -1 so we can check later if the distance has been verified
+
 
 class Lines:
 
@@ -55,7 +57,6 @@ class Lines:
         img = cv2.addWeighted(img, 0.8, line_img, 1.0, 0.0)
         return img
 
-
     def best_fit(x_points, y_points):
 
         m = (((mean(x_points)*mean(y_points)) - mean(x_points*y_points)) /
@@ -64,7 +65,7 @@ class Lines:
 
         return m, b
 
-    def detect(self,cv_image):
+    def detect(self, cv_image):
         #crop = cv_image[360:670, 0:1280]
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
@@ -80,7 +81,6 @@ class Lines:
         linesP = cv2.HoughLinesP(abs_dst, rho=6, theta=np.pi / 60, threshold=50,
                                  lines=np.array([]), minLineLength=30, maxLineGap=10)
 
-
         if linesP is not None:
             for line in linesP:
                 for x1, y1, x2, y2 in line:
@@ -92,15 +92,15 @@ class Lines:
                     if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
                         # <-- If the slope is negative, left group
                         #cv2.line(crop, (x1, y1), (x2, y2), (0, 0, 255), 3)
-                        cv2.circle(cv_image, (x1, y1),(5), (0,0,255), 3)
-                        cv2.circle(cv_image, (x2, y2),(5), (0,0,255), 3)
+                        cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
+                        cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
                     else:  # <-- Otherwise, right group.
                         #cv2.line(crop, (x1, y1), (x2, y2), (0, 255, 0), 3)
-                        cv2.circle(cv_image, (x1, y1),(5), (0,255,0), 3)
-                        cv2.circle(cv_image, (x2, y2),(5), (0,255,0), 3)
+                        cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
+                        cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
 
         cv2.namedWindow('Detections', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('Detections',cv_image)
+        cv2.imshow('Detections', cv_image)
         cv2.waitKey(25)
 
     def clean_up(self):
@@ -110,21 +110,21 @@ class Lines:
 def main():
     pipeline = rs.pipeline()
     config = rs.config()
-    config.enable_stream(rs.stream.color,640,480, rs.format.bgr8,30)
-    config.enable_stream(rs.stream.depth,640,480, rs.format.z16,30)
+    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
     pipeline.start(config)
     go = True
     while go:
         try:
             frames = pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame() # also I think this is possible: ir = frames[0]
+            color_frame = frames.get_color_frame()  # also I think this is possible: ir = frames[0]
             depth_frame = frames.get_depth_frame()
             color_image = np.asanyarray(color_frame.get_data())
             depth_image = np.asanyarray(depth_frame.get_data())
             depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-            images = np.hstack((color_image,depth_colormap))
+            images = np.hstack((color_image, depth_colormap))
             cv2.namedWindow('Raw Realsense', cv2.WINDOW_AUTOSIZE)
-            cv2.imshow('Raw Realsense',images)
+            cv2.imshow('Raw Realsense', images)
             cv2.waitKey(25)
             key = cv2.waitKey(25)
             if key == 27:
@@ -139,6 +139,6 @@ def main():
             lines_obj.clean_up()
             raise
 
-if __name__ == '__main__':
-   main()
 
+if __name__ == '__main__':
+    main()
