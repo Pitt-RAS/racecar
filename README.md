@@ -38,3 +38,8 @@ Make sure you
 - Have Docker installed on your machine (a local daemon does not need to be running)
 - Have your SSH key trusted by the NUC (see instructions in the computer-configuration folder)
 
+### I want to deploy the stack locally
+Simply add the `--local` flag to your `robot.sh` command. Use the local flag with all other robot.sh functions as well.
+```bash
+./robot.sh --local deploy
+```
