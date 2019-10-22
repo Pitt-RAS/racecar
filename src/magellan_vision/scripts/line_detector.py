@@ -1,15 +1,54 @@
+#!/usr/bin/env python
+
+#TODO: Code Description
+
+'''
+Publishes raw camera image to RawImage Topic. Can be viewed using rviz
+#TODO: Publish to other topics such as Detected points, Depth Image etc.. 
+#TODO: 
+Run Instructions: 
+    #1 Run: roscore
+    #2 Source the workspace setup folder
+    #3 Run: rosrun magellan_vision line_detector.py
+'''
+
 import cv2
 import numpy as np
 import math
 from statistics import mean
-import pyrealsense2 as rs
+import pyrealsense2 as rs #Camera Import
 
+#ROS imports
+import rospy
+from sensor_msgs.msg import Image #ROS Image Message
+from cv_bridge import CvBridge, CvBridgeError #Converts b/w OpenCV Image and ROS Image Message
+
+#Global Constants
 ddepth = cv2.CV_16S
 kernel_size = 3
+
+#Global Variables
 skipped_frames = 0
-num_of_frames = 0
+num_of_frames = 0 #FPS Calculation
 
+#TODO: Class Description
+#TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc.. 
+class ImagePublisherROS:
+    def __init__(self):
+        # Paramaters
+        self.bridge = CvBridge()
 
+        #Publisher
+        self.pub = rospy.Publisher('RawImage', Image, queue_size=10) # Modify to accomodate a general topic Eg: Raw Image Topic...etc
+
+    def publish(self,cvImage):
+        rospy.loginfo('RawImage')
+        if not rospy.is_shutdown():
+            rospy.loginfo('Publishing Raw Img...')
+            if cvImage is not None: # Verify if unnecessary
+                self.pub.publish(self.bridge.cv2_to_imgmsg(cvImage))
+                
+#TODO: Class Description
 class Obstacle:
 
     def __init__(self, type_of_obstacle, color_of_obstacle, x_center, y_center):
@@ -19,7 +58,7 @@ class Obstacle:
         self.y_center = y_center
         self.dist = -1  # default to -1 so we can check later if the distance has been verified
 
-
+#TODO: Class Description
 class Lines:
 
     def __init__(self):
@@ -96,7 +135,7 @@ class Lines:
                     else:  # <-- Otherwise, right group.
                         cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                         cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
-
+        
         cv2.namedWindow('Detections', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('Detections', cv_image)
         cv2.waitKey(25)
@@ -106,6 +145,11 @@ class Lines:
 
 
 def main():
+    #ROS Node Initialization
+    #disable_signals flag allows catching signals such as the KeyboardInterrupt, otherwise try/except Exceptions may never be handled
+    rospy.init_node('ImagePublisherNode',anonymous = True, disable_signals = True)
+    vision_node = ImagePublisherROS()
+
     pipeline = rs.pipeline()
     config = rs.config()
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
@@ -120,13 +164,18 @@ def main():
             color_image = np.asanyarray(color_frame.get_data())
             depth_image = np.asanyarray(depth_frame.get_data())
             depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+           
+            # Publish Raw image from the vision node to the Raw Image Topic
+            vision_node.publish(color_image) 
+           
             images = np.hstack((color_image, depth_colormap))
             cv2.namedWindow('Raw Realsense', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('Raw Realsense', images)
             cv2.waitKey(25)
             key = cv2.waitKey(25)
             lines_obj = Lines()
-            lines_obj.detect(color_image)
+            lines_obj.detect(color_image) #Warning: color_image is modified in Lines class to show detected circles as overlay
+
             if key == 27:
                 go = False
                 lines_obj.clean_up()
@@ -134,8 +183,13 @@ def main():
                 break
 
         except (KeyboardInterrupt, SystemExit):
+            go = False
             lines_obj.clean_up()
+            cv2.destroyAllWindows()
             raise
+            
+        except rospy.ROSInterruptException: #TODO: Verify Functionality
+            pass
 
 
 if __name__ == '__main__':
