@@ -21,7 +21,7 @@ class ContinuousPathNode(object):
         self._frame_id = 'odom'
         self._odom_frame_id = 'odom'
         self._publisher = rospy.Publisher('/path', Path, queue_size=5)
-        self.raw_path_sub = rospy.Subscriber('/noah/raw_path', Point, self.raw_path_callback)
+        self.raw_path_sub = rospy.Subscriber('/continuous_path', Point, self.raw_path_callback)
 
     def raw_path_callback(self, data):
         now = rospy.Time.now()
@@ -73,16 +73,10 @@ if __name__ == '__main__':
     rospy.init_node('continuous_path')
 
     node = ContinuousPathNode()
-    debug_raw_path_pub = rospy.Publisher('/noah/raw_path', Point, queue_size=5)
-
-    debug_point = Point()
-    debug_tick = 0
-    rospy.sleep(2)
-
+    
     # initialize first point on path to origin
-    debug_point.x = 0
-    debug_point.y = 0
-    debug_point.z = 0
-    debug_raw_path_pub.publish(debug_point)
+    origin = Point()
+    node.raw_path_callback(origin)
+
     while not rospy.is_shutdown():
         rospy.spin()
