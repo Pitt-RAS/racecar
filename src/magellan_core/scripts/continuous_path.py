@@ -73,7 +73,7 @@ if __name__ == '__main__':
     rospy.init_node('continuous_path')
 
     node = ContinuousPathNode()
-    
+
     # initialize first point on path to origin
     origin = Point()
     node.raw_path_callback(origin)
