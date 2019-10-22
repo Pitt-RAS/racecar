@@ -34,11 +34,13 @@ Deployment script configuration is set in `robot.env`. `ROBOT_IP` and `DEFAULT_L
 
 Make sure you
 
-- Connected to the PittRAS WiFi network.
+- Connected to the robot_onboard WiFi network.
 - Have Docker installed on your machine (a local daemon does not need to be running)
 - Have your SSH key trusted by the NUC (see instructions in the computer-configuration folder)
+- Recieve a response with `ping 192.168.1.22`
+  - If you get a request timeout after the NUC has been powered on for a minute, power cycle the NUC
 
-### I want to deploy the stack locally
+### I want to deploy the stack locally (magellan_sim)
 Simply add the `--local` flag to your `robot.sh` command. Use the local flag with all other robot.sh functions as well.
 ```bash
 ./robot.sh --local deploy
