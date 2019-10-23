@@ -50,7 +50,7 @@ case $1 in
     ;;
 
     shutdown)
-        ssh ras@${ROBOT_IP} "sudo poweroff" &> /dev/nulli
+        ssh ras@${ROBOT_IP} "sudo poweroff" &> /dev/null
     ;;
 
     shell)

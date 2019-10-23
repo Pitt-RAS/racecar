@@ -1,4 +1,3 @@
 <launch>
-        <node pkg="magellan_vision" type="blobDetection_ROS.py" name="obstacle_avoidance_node"/>
+	<node pkg="magellan_vision" type="blobDetection_ROS.py" name="obstacle_avoidance_node"/>
 </launch>
-
