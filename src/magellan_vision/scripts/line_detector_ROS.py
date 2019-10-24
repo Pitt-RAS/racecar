@@ -14,6 +14,7 @@ Run Instructions:
 
 import cv2
 import numpy as np
+# TODO: Can delete math and statisics, because they are unused
 import math
 from statistics import mean
 import pyrealsense2 as rs #Camera Import
@@ -23,6 +24,7 @@ import rospy
 from sensor_msgs.msg import Image #ROS Image Message
 from cv_bridge import CvBridge, CvBridgeError #Converts b/w OpenCV Image and ROS Image Message
 
+# TODO: Will make all constants params instead of in code
 #Global Constants
 ddepth = cv2.CV_16S
 kernel_size = 3
@@ -31,8 +33,9 @@ kernel_size = 3
 skipped_frames = 0
 num_of_frames = 0 #FPS Calculation
 
-#TODO: Class Description
-#TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc..
+# TODO: Class Description
+# TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc..
+# TODO:  Make callback that makes the detections on frames received from /camera/color/image_raw
 class ImagePublisherROS:
     def __init__(self,topic,msgType):
         # Paramaters
@@ -57,7 +60,7 @@ class ImagePublisherROS:
             else:
                 rospy.logerr('Data passed of Type: %s is not an instance of Class: %s'%(type(data),type(self.msgType())))
 
-#TODO: Class Description
+#TODO: Delete this class
 class Obstacle:
 
     def __init__(self, type_of_obstacle, color_of_obstacle, x_center, y_center):
@@ -87,6 +90,7 @@ class Lines:
                 done = True
         return skel
 
+    # TODO: Can delete this method
     def draw_lines(img, lines, color=[0, 255, 0], thickness=3):
         if lines is None:
             return
@@ -105,6 +109,7 @@ class Lines:
         img = cv2.addWeighted(img, 0.8, line_img, 1.0, 0.0)
         return img
 
+    # TODO: Can delete this method
     def best_fit(x_points, y_points):
 
         m = (((mean(x_points)*mean(y_points)) - mean(x_points*y_points)) /
@@ -144,20 +149,27 @@ class Lines:
                     else:  # <-- Otherwise, right group.
                         cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                         cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
-    def clean_up(self):
+
+# TODO: Finish this method which will subscribe to /camera/color/image_raw and then detect
+def detector():
+
 
 
 def main():
     #ROS Node Initialization
     #disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except Exceptions may never be handled
-    rospy.init_node('ImagePublisherNode',anonymous = True, disable_signals = True)
+    
+    rospy.init_node('LineDetectionNode',anonymous = True, disable_signals = True)
+    # TODO: Add a subscribtion to /camera/color/image_raw    
     rawImagePub = ImagePublisherROS('RawImage',Image) # Args: (Topic, MessageType)
-
+    
+    # TODO: Delete lines 156-160
     pipeline = rs.pipeline()
     config = rs.config()
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
     config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
     pipeline.start(config)
+    # TOOD: No need for while loop anymore. Code will run while rospy.isNotShutdown()
     go = True
     while go:
         try:
