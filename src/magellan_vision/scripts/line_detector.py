@@ -34,20 +34,29 @@ num_of_frames = 0 #FPS Calculation
 #TODO: Class Description
 #TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc.. 
 class ImagePublisherROS:
-    def __init__(self):
+    def __init__(self,topic,msgType):
         # Paramaters
-        self.bridge = CvBridge()
+        if msgType == Image:
+            self.bridge = CvBridge()
+        
+        # Topic and Message type
+        self.topic = topic
+        self.msgType = msgType
 
-        #Publisher
-        self.pub = rospy.Publisher('RawImage', Image, queue_size=10) # Modify to accomodate a general topic Eg: Raw Image Topic...etc
+        # Publisher
+        self.pub = rospy.Publisher(topic, msgType, queue_size=10) # Modify to accomodate a general topic Eg: Raw Image Topic...etc
 
-    def publish(self,cvImage):
-        rospy.loginfo('RawImage')
+    def publish(self, data):
         if not rospy.is_shutdown():
-            rospy.loginfo('Publishing Raw Img...')
-            if cvImage is not None: # Verify if unnecessary
-                self.pub.publish(self.bridge.cv2_to_imgmsg(cvImage))
-                
+            if isinstance(data, np.ndarray): #If data is a Numpy Array(CV Image)
+                data = self.bridge.cv2_to_imgmsg(data) #Convert CV Image to ROS Message Image
+
+            if isinstance(data, self.msgType): #Only publish if the data received is of the same type as message type
+                rospy.loginfo('Publishing ' + self.topic)
+                self.pub.publish(data)
+            else:
+                rospy.logerr('Data passed of Type: %s is not an instance of Class: %s'%(type(data),type(self.msgType())))
+               
 #TODO: Class Description
 class Obstacle:
 
@@ -146,9 +155,9 @@ class Lines:
 
 def main():
     #ROS Node Initialization
-    #disable_signals flag allows catching signals such as the KeyboardInterrupt, otherwise try/except Exceptions may never be handled
+    #disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except Exceptions may never be handled
     rospy.init_node('ImagePublisherNode',anonymous = True, disable_signals = True)
-    vision_node = ImagePublisherROS()
+    rawImagePub = ImagePublisherROS('RawImage',Image) # Args: (Topic, MessageType)
 
     pipeline = rs.pipeline()
     config = rs.config()
@@ -164,10 +173,10 @@ def main():
             color_image = np.asanyarray(color_frame.get_data())
             depth_image = np.asanyarray(depth_frame.get_data())
             depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-           
-            # Publish Raw image from the vision node to the Raw Image Topic
-            vision_node.publish(color_image) 
-           
+
+            # Publish Raw image from the Image Publisher Node to the RawImage Topic
+            rawImagePub.publish(depth_frame)
+
             images = np.hstack((color_image, depth_colormap))
             cv2.namedWindow('Raw Realsense', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('Raw Realsense', images)
@@ -183,7 +192,6 @@ def main():
                 break
 
         except (KeyboardInterrupt, SystemExit):
-            go = False
             lines_obj.clean_up()
             cv2.destroyAllWindows()
             raise
