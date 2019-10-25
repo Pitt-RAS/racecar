@@ -22,7 +22,7 @@ while getopts "a:cln:h" opt; do
     h)
         printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh]\n-c: launch camera node\n-l: deploy locally\n-n NODE: launch a node\n"
       ;;
-    \?) 
+    *) 
         printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh]\n-c: launch camera node\n-l: deploy locally\n-n NODE: launch a node\n"
       ;;
   esac
