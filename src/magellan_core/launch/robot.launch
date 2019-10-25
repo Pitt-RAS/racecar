@@ -4,4 +4,5 @@
     </node>
     <include file="$(find magellan_core)/launch/passive.launch" />
     <include file="$(find magellan_core)/launch/continuous_path.launch" />
+	<include file="$(find magellan_core)/launch/camera.launch" />
 </launch> 
