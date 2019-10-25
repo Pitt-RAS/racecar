@@ -12,7 +12,8 @@ fi
 
 if [[ -n "${LOCAL}" ]]; then
     unset DOCKER_HOST
-    ROBOT_IP="127.0.0.1"
+    export ROBOT_IP="127.0.0.1"
+    export ROS_MASTER_URI="http://127.0.0.1:11311"
     DEFAULT_LAUNCH=${DEFAULT_LOCAL_LAUNCH}
 else
     export DOCKER_HOST="ssh://ras@${ROBOT_IP}"
@@ -87,7 +88,11 @@ case $1 in
     ;;
 
     ssh)
-        ssh ras@${ROBOT_IP}
+        if [[ -n "${LOCAL}" ]]; then
+            echo "You're sshing into your own machine!"
+        else
+            ssh ras@${ROBOT_IP}
+        fi
 	;;
 
     *)
