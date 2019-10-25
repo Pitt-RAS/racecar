@@ -17,7 +17,7 @@ while getopts "a:cln:h" opt; do
         export LOCAL=true
       ;;
     n) # launch another node 
-        export NODE_LAUNCH="{$OPTARG}"
+        export NODE_LAUNCH="$OPTARG"
       ;;
     h)
         printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh]\n-c: launch camera node\n-l: deploy locally\n-n NODE: launch a node\n"
