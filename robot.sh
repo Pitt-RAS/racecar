@@ -5,10 +5,28 @@ pushd $(dirname $BASH_SOURCE) > /dev/null
 
 source robot.env
 
-if [[ "$1" == "--local" ]]; then
-    export LOCAL=true
-    shift
-fi
+while getopts "a:lh" opt; do
+  case ${opt} in
+    a) # action (start, stop, deploy etc) -a deploy
+        export ACTION="$OPTARG"
+      ;; 
+
+    l) # launch locally
+        export LOCAL=true
+      ;;
+    #TODO 
+    #n) # launch a specific node with the rest of the stack 
+    #    export NODE_LAUNCH="$OPTARG"
+    #  ;;
+    h)
+        printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh] [-l]\n-l: deploy locally\n"
+      ;;
+    *) 
+        printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh] [-l]\n-l: deploy locally\n"
+      ;;
+  esac
+done
+shift "$(($OPTIND -1))"
 
 if [[ -n "${LOCAL}" ]]; then
     unset DOCKER_HOST
@@ -19,7 +37,7 @@ else
     DEFAULT_LAUNCH=${DEFAULT_ROBOT_LAUNCH}
 fi
 
-case $1 in
+case $ACTION in
     start)
         shift
         docker stop ${CONTAINER_NAME} &> /dev/null
@@ -38,7 +56,7 @@ case $1 in
 
         if [ $? -eq 0 ]
         then
-            $0 watch
+            $0 -a watch
         else
             echo "Error starting container"
         fi
@@ -62,10 +80,19 @@ case $1 in
     ;;
 
     deploy)
-        $0 stop
-        set -e
-        docker build -t ${IMAGE_NAME}:dev .
-        $0 start
+        if [[ -n "${LOCAL}" ]]; then
+            echo $0
+            $0 -a stop -l
+            set -e
+            docker build -t ${IMAGE_NAME}:dev .
+            $0 -a start -l
+        else
+            $0 -a stop
+            set -e
+            docker build -t ${IMAGE_NAME}:dev .
+            $0 -a start
+        fi
+        
 
 	docker system prune
         ./imageprune.py
@@ -94,7 +121,10 @@ case $1 in
         fi
 	;;
 
+    "")
+        printf "Please select an action\n"
+      ;;
     *)
-        echo "Usage: robot.sh [start|stop|deploy|watch|shell|deploy-teensy|ssh]"
+        printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh] [-l]\n-l: deploy locally\n"
     ;;
 esac
