@@ -5,20 +5,20 @@ pushd $(dirname $BASH_SOURCE) > /dev/null
 
 source robot.env
 
-while getopts "a:cln:h" opt; do
+while getopts "a:lh" opt; do
   case ${opt} in
     a) # action (start, stop, deploy etc) -a deploy
         export ACTION="$OPTARG"
       ;; 
-    c) #launch camera node -c
-        export CAMERA=true
-      ;;
+    #c) #launch camera node -c
+    #    export CAMERA=true
+    #  ;;
     l) # launch locally
         export LOCAL=true
       ;;
-    n) # launch another node 
-        export NODE_LAUNCH="$OPTARG"
-      ;;
+    #n) # launch another node 
+    #    export NODE_LAUNCH="$OPTARG"
+    #  ;;
     h)
         printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh]\n-c: launch camera node\n-l: deploy locally\n-n NODE: launch a node\n"
       ;;
@@ -27,6 +27,7 @@ while getopts "a:cln:h" opt; do
       ;;
   esac
 done
+shift "$(($OPTIND -1))"
 
 if [[ -n "${LOCAL}" ]]; then
     unset DOCKER_HOST
@@ -56,7 +57,7 @@ case $ACTION in
 
         if [ $? -eq 0 ]
         then
-            $0 watch
+            $0 -a watch
         else
             echo "Error starting container"
         fi
@@ -80,10 +81,19 @@ case $ACTION in
     ;;
 
     deploy)
-        $0 stop
-        set -e
-        docker build -t ${IMAGE_NAME}:dev .
-        $0 start
+        if [[ -n "${LOCAL}" ]]; then
+            echo $0
+            $0 -a stop -l
+            set -e
+            docker build -t ${IMAGE_NAME}:dev .
+            $0 -a start -l
+        else
+            $0 -a stop
+            set -e
+            docker build -t ${IMAGE_NAME}:dev .
+            $0 -a start
+        fi
+        
 
 	docker system prune
         ./imageprune.py
