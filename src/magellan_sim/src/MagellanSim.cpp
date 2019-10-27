@@ -110,7 +110,7 @@ void MagellanSim::UpdateYaw() {
  */
 void MagellanSim::UpdateThrottle(const std_msgs::Float64& cmd_velocity) {
     commanded_velocity_ = cmd_velocity.data;
-    if(commanded_velocity_ == 0.0)
+    if (commanded_velocity_ == 0.0)
         stop_flag = true;
     else
         stop_flag = false;
