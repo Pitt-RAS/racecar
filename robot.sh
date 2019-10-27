@@ -81,7 +81,6 @@ case $ACTION in
 
     deploy)
         if [[ -n "${LOCAL}" ]]; then
-            echo $0
             $0 -a stop -l
             set -e
             docker build -t ${IMAGE_NAME}:dev .
