@@ -1,6 +1,6 @@
 #!/bin/sh
 # TODO: Script file description
-###### source the setup file first
+###source setup file befor running this
 
 echo "Starting roscore..."
 BASE=`rospack find magellan_vision`/scripts
@@ -9,7 +9,7 @@ sleep 5
 
 echo "Starting realsense2.0 publishers..."
 roslaunch realsense2_camera rs_camera.launch &
-sleep 5
+sleep 10
 
 echo "Starting Line detector..."
 rosrun magellan_vision line_detector.py
