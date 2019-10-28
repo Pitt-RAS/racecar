@@ -3,24 +3,19 @@
 #TODO: Code Description
 
 '''
-Publishes raw camera image to RawImage Topic. Can be viewed using rviz
+Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes to the /output/color/image_processed topic(Processed RGB raw Images)
 #TODO: Publish to other topics such as Detected points, Depth Image etc.. 
-#TODO: 
-Run Instructions: 
-    #1 Run: roscore
-    #2 Source the workspace setup folder
-    #3 run the ros wrapper
-    #3 Run: rosrun magellan_vision line_detector.py
+Run Instructions:
+    #1 Source the workspace setup folder
+    #2 run the ./init.sh file from the magellan_vision directory # Will be removed in future release
 '''
 
 # Python libs
 import sys, time
 
-# Processing Libs
+# Numpy and OpenCV
 import cv2
 import numpy as np
-import math
-from statistics import mean
 
 # ROS imports
 import rospy
@@ -32,11 +27,7 @@ ddepth = cv2.CV_16S
 kernel_size = 3
 VERBOSE = True
 
-#Global Variables
-skipped_frames = 0
-num_of_frames = 0 #FPS Calculation
-
-#TODO: Class Description
+# Class PubSubNode: Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes to the /output/color/image_processed topic(Processed RGB raw Images)
 #TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc.. 
 class PubSubNode:
     def __init__(self):
@@ -60,36 +51,27 @@ class PubSubNode:
         ## conversion to cv2 ##
         image_np = self.bridge.imgmsg_to_cv2(ros_data, "bgr8")
 
-        ## Line detection##
+        ## Line detection ##
         lines_object = Lines()
         
         time1 = time.time()
-        lines_object.detect(image_np)
+        # TODO: image_np is inherently changed in the Lines() class. Might be useful for it to have its own layer
+        image_np = lines_object.detect(image_np)
         time2 = time.time()
         if VERBOSE:
             print 'Detection processed %s Hz.'%(1/(time2-time1))
 
         
-        ## conversion back to Image
+        ## conversion back to Image ##
         ros_msg = self.bridge.cv2_to_imgmsg(image_np)
 
-        #Publish new image
+        ## Publish Processed Image ##
         self.image_pub.publish(ros_msg)
         time3 = time.time()
         if VERBOSE:
             print 'Subscribe to publish frequency: %s Hz'%(1/(time3-time0))
                
-#TODO: Class Description
-class Obstacle:
-
-    def __init__(self, type_of_obstacle, color_of_obstacle, x_center, y_center):
-        self.type_of_obstacle = type_of_obstacle
-        self.color_of_obstacle = color_of_obstacle
-        self.x_center = x_center
-        self.y_center = y_center
-        self.dist = -1  # default to -1 so we can check later if the distance has been verified
-
-#TODO: Class Description
+# Class Lines: Detects points in an Image that aligns into a line. Outputs the image with detected points overlayed on it. 
 class Lines:
 
     def __init__(self):
@@ -166,11 +148,8 @@ class Lines:
                     else:  # <-- Otherwise, right group.
                         cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                         cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
-
-
-    def clean_up(self):
-        cv2.destroyAllWindows()
-
+        
+        return cv_image
 
 def main(args):
     #ROS Node Initialization
