@@ -36,16 +36,17 @@ VERBOSE = True
 class PubSubNode:
     def __init__(self):
         '''Initialize ros publisher, ros subscriber'''
+        self._lines_object = Lines()
         # topic where we publish
-        self.image_pub = rospy.Publisher("/output/color/image_processed", Image, queue_size=5)
-        self.bridge = CvBridge()
+        self._image_pub = rospy.Publisher("/output/color/image_processed", Image, queue_size=5)
+        self._bridge = CvBridge()
 
         # subscribed Topic
-        self.subscriber = rospy.Subscriber("/camera/color/image_raw", Image, self.callback, queue_size=1)
+        self._subscriber = rospy.Subscriber("/camera/color/image_raw", Image, self._callback, queue_size=1)
         if VERBOSE:
             print "subscribed to /camera/color/image_raw"
 
-    def callback(self, ros_data):
+    def _callback(self, ros_data):
         '''Callback function of subscribed topic.
         Here images get converted and features detected'''
         if VERBOSE:
@@ -53,27 +54,26 @@ class PubSubNode:
         time0 = time.time()
         # conversion to cv2
         try:
-            image_np = self.bridge.imgmsg_to_cv2(ros_data, "bgr8")
+            image_np = self._bridge.imgmsg_to_cv2(ros_data, "bgr8")
         except CvBridgeError:
             return
 
         # Line detection
-        lines_object = Lines()
         time1 = time.time()
         # TODO: image_np is inherently changed in the Lines() class. Might be useful for it to have its own layer
-        image_np = lines_object.detect(image_np)
+        image_np = self._lines_object.detect(image_np)
         time2 = time.time()
         if VERBOSE:
-            print 'Detection processed %s Hz.' % (1/(time2-time1))
+            print 'Detection processed at %s Hz.' % (1/(time2-time1))
 
         # conversion back to Image
         try:
-            ros_msg = self.bridge.cv2_to_imgmsg(image_np)
+            ros_msg = self._bridge.cv2_to_imgmsg(image_np)
         except CvBridgeError:
             return
 
         # Publish Processed Image
-        self.image_pub.publish(ros_msg)
+        self._image_pub.publish(ros_msg)
         time3 = time.time()
         if VERBOSE:
             print 'Subscribe to publish frequency: %s Hz' % (1/(time3-time0))
