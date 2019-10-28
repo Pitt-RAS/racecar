@@ -9,16 +9,20 @@ Publishes raw camera image to RawImage Topic. Can be viewed using rviz
 Run Instructions: 
     #1 Run: roscore
     #2 Source the workspace setup folder
+    #3 run the ros wrapper
     #3 Run: rosrun magellan_vision line_detector.py
 '''
 
+# Python libs
+import sys, time
+
+# Processing Libs
 import cv2
 import numpy as np
 import math
 from statistics import mean
-import pyrealsense2 as rs #Camera Import
 
-#ROS imports
+# ROS imports
 import rospy
 from sensor_msgs.msg import Image #ROS Image Message
 from cv_bridge import CvBridge, CvBridgeError #Converts b/w OpenCV Image and ROS Image Message
@@ -26,6 +30,7 @@ from cv_bridge import CvBridge, CvBridgeError #Converts b/w OpenCV Image and ROS
 #Global Constants
 ddepth = cv2.CV_16S
 kernel_size = 3
+VERBOSE = True
 
 #Global Variables
 skipped_frames = 0
@@ -33,29 +38,46 @@ num_of_frames = 0 #FPS Calculation
 
 #TODO: Class Description
 #TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc.. 
-class ImagePublisherROS:
-    def __init__(self,topic,msgType):
-        # Paramaters
-        if msgType == Image:
-            self.bridge = CvBridge()
+class PubSubNode:
+    def __init__(self):
+        '''Initialize ros publisher, ros subscriber'''
+        # topic where we publish
+        self.image_pub = rospy.Publisher("/output/color/image_processed", Image, queue_size = 5)
+        self.bridge = CvBridge()
+
+        # subscribed Topic
+        self.subscriber = rospy.Subscriber("/camera/color/image_raw", Image, self.callback, queue_size = 1)
+        if VERBOSE:
+            print "subscribed to /camera/color/image_raw"
+                # Topic and Message type
+
+    def callback(self, ros_data):
+        '''Callback function of subscribed topic.
+        Here images get converted and features detected'''
+        if VERBOSE:
+            print 'received image of type: "%s"'%type(ros_data)
+        time0 = time.time()
+        ## conversion to cv2 ##
+        image_np = self.bridge.imgmsg_to_cv2(ros_data, "bgr8")
+
+        ## Line detection##
+        lines_object = Lines()
         
-        # Topic and Message type
-        self.topic = topic
-        self.msgType = msgType
+        time1 = time.time()
+        lines_object.detect(image_np)
+        time2 = time.time()
+        if VERBOSE:
+            print 'Detection processed %s Hz.'%(1/(time2-time1))
 
-        # Publisher
-        self.pub = rospy.Publisher(topic, msgType, queue_size=10) # Modify to accomodate a general topic Eg: Raw Image Topic...etc
+        
+        ## conversion back to Image
+        ros_msg = self.bridge.cv2_to_imgmsg(image_np)
 
-    def publish(self, data):
-        if not rospy.is_shutdown():
-            if isinstance(data, np.ndarray): #If data is a Numpy Array(CV Image)
-                data = self.bridge.cv2_to_imgmsg(data) #Convert CV Image to ROS Message Image
-
-            if isinstance(data, self.msgType): #Only publish if the data received is of the same type as message type
-                rospy.loginfo('Publishing ' + self.topic)
-                self.pub.publish(data)
-            else:
-                rospy.logerr('Data passed of Type: %s is not an instance of Class: %s'%(type(data),type(self.msgType())))
+        #Publish new image
+        self.image_pub.publish(ros_msg)
+        time3 = time.time()
+        if VERBOSE:
+            print 'Subscribe to publish frequency: %s Hz'%(1/(time3-time0))
                
 #TODO: Class Description
 class Obstacle:
@@ -144,61 +166,23 @@ class Lines:
                     else:  # <-- Otherwise, right group.
                         cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                         cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
-        
-        cv2.namedWindow('Detections', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('Detections', cv_image)
-        cv2.waitKey(25)
+
 
     def clean_up(self):
         cv2.destroyAllWindows()
 
 
-def main():
+def main(args):
     #ROS Node Initialization
     #disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except Exceptions may never be handled
-    rospy.init_node('ImagePublisherNode',anonymous = True, disable_signals = True)
-    rawImagePub = ImagePublisherROS('RawImage',Image) # Args: (Topic, MessageType)
-
-    pipeline = rs.pipeline()
-    config = rs.config()
-    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-    pipeline.start(config)
-    go = True
-    while go:
-        try:
-            frames = pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame()  # also I think this is possible: ir = frames[0]
-            depth_frame = frames.get_depth_frame()
-            color_image = np.asanyarray(color_frame.get_data())
-            depth_image = np.asanyarray(depth_frame.get_data())
-            depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-
-            # Publish Raw image from the Image Publisher Node to the RawImage Topic
-            rawImagePub.publish(depth_frame)
-
-            images = np.hstack((color_image, depth_colormap))
-            cv2.namedWindow('Raw Realsense', cv2.WINDOW_AUTOSIZE)
-            cv2.imshow('Raw Realsense', images)
-            cv2.waitKey(25)
-            key = cv2.waitKey(25)
-            lines_obj = Lines()
-            lines_obj.detect(color_image) #Warning: color_image is modified in Lines class to show detected circles as overlay
-
-            if key == 27:
-                go = False
-                lines_obj.clean_up()
-                cv2.destroyAllWindows()
-                break
-
-        except (KeyboardInterrupt, SystemExit):
-            lines_obj.clean_up()
-            cv2.destroyAllWindows()
-            raise
-            
-        except rospy.ROSInterruptException: #TODO: Verify Functionality
-            pass
+    rospy.init_node('LinesNode',anonymous = True, disable_signals = True)
+    node = PubSubNode()
+    try:
+        rospy.spin()
+    except KeyboardInterrupt:
+        print "shutting down ROS Lines detector Module"
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
