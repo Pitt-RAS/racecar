@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-#TODO: Code Description
-
 '''
 Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes to the /output/color/image_processed topic(Processed RGB raw Images)
+
 #TODO: Publish to other topics such as Detected points, Depth Image etc.. 
+
 Run Instructions:
     #1 Source the workspace setup folder
     #2 run the ./init.sh file from the magellan_vision directory # Will be removed in future release
@@ -12,6 +12,7 @@ Run Instructions:
 
 # Python libs
 import sys, time
+import math
 
 # Numpy and OpenCV
 import cv2
@@ -19,16 +20,15 @@ import numpy as np
 
 # ROS imports
 import rospy
-from sensor_msgs.msg import Image #ROS Image Message
-from cv_bridge import CvBridge, CvBridgeError #Converts b/w OpenCV Image and ROS Image Message
+from sensor_msgs.msg import Image # ROS Image Message
+from cv_bridge import CvBridge, CvBridgeError # Converts b/w OpenCV Image and ROS Image Message
 
-#Global Constants
-ddepth = cv2.CV_16S
-kernel_size = 3
+# Global Constant
 VERBOSE = True
 
+
 # Class PubSubNode: Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes to the /output/color/image_processed topic(Processed RGB raw Images)
-#TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc.. 
+# TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc.. 
 class PubSubNode:
     def __init__(self):
         '''Initialize ros publisher, ros subscriber'''
@@ -40,7 +40,6 @@ class PubSubNode:
         self.subscriber = rospy.Subscriber("/camera/color/image_raw", Image, self.callback, queue_size = 1)
         if VERBOSE:
             print "subscribed to /camera/color/image_raw"
-                # Topic and Message type
 
     def callback(self, ros_data):
         '''Callback function of subscribed topic.
@@ -61,7 +60,6 @@ class PubSubNode:
         if VERBOSE:
             print 'Detection processed %s Hz.'%(1/(time2-time1))
 
-        
         ## conversion back to Image ##
         ros_msg = self.bridge.cv2_to_imgmsg(image_np)
 
@@ -70,12 +68,14 @@ class PubSubNode:
         time3 = time.time()
         if VERBOSE:
             print 'Subscribe to publish frequency: %s Hz'%(1/(time3-time0))
-               
+
+
 # Class Lines: Detects points in an Image that aligns into a line. Outputs the image with detected points overlayed on it. 
 class Lines:
 
     def __init__(self):
-        self.centers = 0
+        self._ddepth = cv2.CV_16S
+        self._kernel_size = 3 
 
     def skeletize(self, img, size, skel):
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
@@ -127,7 +127,7 @@ class Lines:
 
         skeleton = self.skeletize(thresh4, size, skel)
 
-        dst = cv2.Laplacian(skeleton, ddepth, ksize=kernel_size)
+        dst = cv2.Laplacian(skeleton, self._ddepth, ksize= self._kernel_size)
         abs_dst = cv2.convertScaleAbs(dst)
 
         linesP = cv2.HoughLinesP(abs_dst, rho=6, theta=np.pi / 60, threshold=50,
@@ -152,9 +152,10 @@ class Lines:
         return cv_image
 
 def main(args):
-    #ROS Node Initialization
-    #disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except Exceptions may never be handled
-    rospy.init_node('LinesNode',anonymous = True, disable_signals = True)
+    # ROS Node Initialization
+    # disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except Exceptions may never be handled
+    
+    rospy.init_node('LinesNode', anonymous = True, disable_signals = True)
     node = PubSubNode()
     try:
         rospy.spin()
