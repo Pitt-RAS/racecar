@@ -43,7 +43,7 @@ int PathPlanner::getKey(double x, double y) {
 
 Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
     Path p;
-    p.header.frame_id = "map";
+    p.header.frame_id = "base_link";
     p.header.stamp = ros::Time::now();
     double totalCost = 0;
 
@@ -60,6 +60,7 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
         PoseStamped pt;
         pt.pose.position.x = parent->xPose;
         pt.pose.position.y = parent->yPose;
+        pt.header.frame_id = "base_link";
         totalCost = totalCost + parent->gCost;
 
         planVector.push_back(pt);
@@ -200,22 +201,23 @@ Path PathPlanner::plan(Point goal) {
 
 bool PathPlanner::isFree(double x, double y) {
     int mapWidth = _map.info.width;
-    double mapResolution = _map.info.resolution;
+    int mapHeight = _map.info.height;
+    double mapResolution = .01; // _map.info.resolution;
 
     // origin isnt needed because the origin should be center
     // of the robot and x, y should be from robot center
     // the future we should be more general in our frames
 
     if (_resolution != mapResolution) {
-        ROS_WARN_THROTTLE(1, "Path Planner: resoltuion from msg does not match what was expected");
+        ROS_WARN_THROTTLE(1, "Path Planner: resolution from msg does not match what was expected");
     }
 
     // convert x, y to points in map
-    double xRaw = x / .01;
-    double yRaw = y / .01;
+    double xRaw = std::roundf((x - _map.info.origin.position.x) / mapResolution);
+    double yRaw = std::roundf((y - _map.info.origin.position.y) / mapResolution);
 
     int xMap = (int) xRaw;
-    int yMap = (int) yRaw;
+    int yMap = (int) yRaw;;
 
     if (xMap < 0 || yMap < 0) {
         ROS_ERROR_STREAM("Path Planner: X: " << xMap << " and Y: " << yMap << " cell in isFree is negative");

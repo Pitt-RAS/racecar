@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     Server server(nh, "planner_request", false);
     server.start();
 
-    ros::Publisher plan_pub = nh.advertise<nav_msgs::Path>("plan", 1000);
+    ros::Publisher plan_pub = nh.advertise<nav_msgs::Path>("path", 1000);
 
     // construct planner
     double resolution = .01; // 10cm
