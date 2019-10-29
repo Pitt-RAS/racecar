@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="magellan_vision" type="blob_maker_node" name="blob_maker_node"/>
+</launch>
