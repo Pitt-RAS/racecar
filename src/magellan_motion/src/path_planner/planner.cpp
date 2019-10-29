@@ -27,7 +27,7 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
           goalY(0),
           _resolution(resolution),
           open_(comp_),
-          map_sub(nh.subscribe("/fake_map", 10, &PathPlanner::mapCallback, this))
+          map_sub(nh.subscribe("/grid", 10, &PathPlanner::mapCallback, this))
 {
     mapSize = 10 / resolution;
     _has_map = false;
@@ -85,8 +85,8 @@ Path PathPlanner::plan(Point goal) {
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime =
         std::chrono::high_resolution_clock::now();
 
-    goalX = goal.x;
-    goalY = goal.y;
+    goalX = std::roundf(goal.x);
+    goalY = std::roundf(goal.y);
 
     if (!isFree(goalX, goalY)) {
         ROS_ERROR("PathPlanner: Goal is not free!!!!");
