@@ -25,6 +25,7 @@ import numpy as np
 import rospy
 from sensor_msgs.msg import Image  # ROS Image Message
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
+from magellan_core.msg import Float64Arr
 
 # Global Constant
 VERBOSE = True
@@ -38,7 +39,8 @@ class PubSubNode:
         '''Initialize ros publisher, ros subscriber'''
         self._lines_object = Lines()
         # topic where we publish
-        self._image_pub = rospy.Publisher("/output/color/image_processed", Image, queue_size=5)
+        self._image_pub = rospy.Publisher("/perception/color/image_processed", Image, queue_size=5)
+        self._point_arr_pub = rospy.Publisher('/perception/detectedPoints', Float64Arr, queue_size=10)
         self._bridge = CvBridge()
 
         # subscribed Topic
@@ -74,18 +76,20 @@ class PubSubNode:
 
         # Publish Processed Image
         self._image_pub.publish(ros_msg)
+        self._point_arr_pub.publish(self._points_arr)
         time3 = time.time()
         if VERBOSE:
             print 'Subscribe to publish frequency: %s Hz' % (1/(time3-time0))
 
-
 # Class Lines: Detects points in an Image that aligns into a line. Outputs the image with detected points overlayed
 #              on it.
-class Lines:
+class Lines(Object):
 
     def __init__(self):
         self._ddepth = cv2.CV_16S
         self._kernel_size = 3
+        self._points_arr = []
+
 
     def skeletize(self, img, size, skel):
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
@@ -100,32 +104,6 @@ class Lines:
             if zeros == size:
                 done = True
         return skel
-
-    def draw_lines(img, lines, color=[0, 255, 0], thickness=3):
-        if lines is None:
-            return
-        img = np.copy(img)
-        line_img = np.zeros(
-            (
-                img.shape[0],
-                img.shape[1],
-                3,
-            ),
-            dtype=np.uint8,
-        )
-        for line in lines:
-            for x1, y1, x2, y2 in line:
-                cv2.line(line_img, (x1, y1), (x2, y2), color, thickness)
-        img = cv2.addWeighted(img, 0.8, line_img, 1.0, 0.0)
-        return img
-
-    def best_fit(x_points, y_points):
-
-        m = (((mean(x_points)*mean(y_points)) - mean(x_points*y_points)) /
-             ((mean(x_points)*mean(x_points))-mean(x_points*x_points)))
-        b = mean(y_points) - m*mean(x_points)
-
-        return m, b
 
     def detect(self, cv_image):
 
@@ -145,8 +123,10 @@ class Lines:
 
         if linesP is not None:
             for line in linesP:
-                for x1, y1, x2, y2 in line:
+                for  x1, y1, x2, y2 in line:
                     slope = (y2 - y1) / (x2 - x1)
+                    self._points_arr.append((x1,y1))
+                    self._points_arr.append((x2,y2))
                     # <-- Calculating the slope.
                     if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope
