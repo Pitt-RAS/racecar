@@ -7,22 +7,22 @@ Code is deployed to the robot as a Docker image. Most actions are automated with
 
 #### Deploying
 ```bash
-./robot.sh deploy
+./robot.sh -a deploy
 ```
 
 This will copy and build your current workspace on the NUC. After building it will start execuiting on the NUC after stopping any previous code. A custom launch command can be given through command line arguments after `deploy`. After starting, your shell will show stdout/stderr from the NUC. Ctrl+Cing in your shell will not stop the process on the NUC.
 
 #### Starting/Stopping
 ```bash
-./robot.sh start
-./robot.sh stop
+./robot.sh -a start
+./robot.sh -a stop
 ```
 
 These start/stop commands will start and stop the last image that has been deployed to the NUC. A custom launch command can be given through command line arguments after `start`. After starting, your shell will show stdout/stderr from the NUC. Ctrl+Cing in your shell will not stop the process on the NUC.
 
 #### Viewing the console
 ```bash
-./robot.sh watch
+./robot.sh -a watch
 ```
 
 "Watching" the console will watch the output of stdout/stderr, while also showing output from before you connected. Ctrl+Cing in your shell will not stop the process on the NUC.
@@ -41,7 +41,16 @@ Make sure you
   - If you get a request timeout after the NUC has been powered on for a minute, power cycle the NUC
 
 ### I want to deploy the stack locally (magellan_sim)
-Simply add the `--local` flag to your `robot.sh` command. Use the local flag with all other robot.sh functions as well.
+Simply add the `-l` flag to your `robot.sh` command. Use the local flag with all other robot.sh functions as well.
 ```bash
-./robot.sh --local deploy
+./robot.sh -a deploy -l
+```
+### Interact with stack
+To interact with the robot (rostopic, ./robot.sh -a ssh, rosnode, etc) run
+```bash
+source rostarget.sh
+```
+To interact with the sim, simply add the `--local` flag.
+```bash
+source rostarget.sh --local
 ```
