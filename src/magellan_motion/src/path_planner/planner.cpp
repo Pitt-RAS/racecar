@@ -86,8 +86,8 @@ Path PathPlanner::plan(Point goal) {
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime =
         std::chrono::high_resolution_clock::now();
 
-    goalX = std::roundf(goal.x);
-    goalY = std::roundf(goal.y);
+    goalX = std::roundf(goal.x * 100)/100;
+    goalY = std::roundf(goal.y * 100)/100;
 
     if (!isFree(goalX, goalY)) {
         ROS_ERROR("PathPlanner: Goal is not free!!!!");
@@ -201,8 +201,7 @@ Path PathPlanner::plan(Point goal) {
 
 bool PathPlanner::isFree(double x, double y) {
     int mapWidth = _map.info.width;
-    int mapHeight = _map.info.height;
-    double mapResolution = .01; // _map.info.resolution;
+    double mapResolution = std::roundf(_map.info.resolution*100.0)/100.0;
 
     // origin isnt needed because the origin should be center
     // of the robot and x, y should be from robot center
