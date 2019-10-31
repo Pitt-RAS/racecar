@@ -119,10 +119,6 @@ case $ACTION in
             ssh ras@${ROBOT_IP}
         fi
 	;;
-
-    "")
-        printf "Please select an action\n"
-      ;;
     *)
         printf "Usage: ./robot.sh -a [start|stop|deploy|watch|shell|deploy-teensy|ssh] [-l]\n-l: deploy locally\n"
     ;;
