@@ -15,7 +15,6 @@ Run Instructions:
 import sys
 import time
 import math
-from statistics import mean
 
 # Numpy and OpenCV
 import cv2
@@ -25,15 +24,16 @@ import numpy as np
 import rospy
 from sensor_msgs.msg import Image  # ROS Image Message
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
-from magellan_core.msg import Float64Arr
+from magellan_core.msg import Float64Arr  # ROS Float64Arr type msg
 
 # Global Constant
 VERBOSE = True
 
 
 # Class PubSubNode: Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes
-#                   to the /output/color/image_processed topic(Processed RGB raw Images)
-# TODO: Publish to multiple topics: Raw Image; Processed Image?; Detected Points/Lines; Depth image; etc..
+#                   to the /perception/color/image_processed topic(Processed RGB raw Images) and to the
+#                   /perception/detectedPoints topic(Detected Points as a Float64Arr msg)
+# TODO: Publish to other topics: Depth image; etc..
 class PubSubNode:
     def __init__(self):
         '''Initialize ros publisher, ros subscriber'''
@@ -50,7 +50,7 @@ class PubSubNode:
 
     def _callback(self, ros_data):
         '''Callback function of subscribed topic.
-        Here images get converted and features detected'''
+        Here images get converted and features detected and published'''
         if VERBOSE:
             print 'received image of type: "%s"' % type(ros_data)
         time0 = time.time()
@@ -76,20 +76,20 @@ class PubSubNode:
 
         # Publish Processed Image
         self._image_pub.publish(ros_msg)
-        self._point_arr_pub.publish(self._points_arr)
+        self._point_arr_pub.publish(self._lines_object.points_arr)
         time3 = time.time()
         if VERBOSE:
             print 'Subscribe to publish frequency: %s Hz' % (1/(time3-time0))
 
+
 # Class Lines: Detects points in an Image that aligns into a line. Outputs the image with detected points overlayed
 #              on it.
-class Lines(Object):
+class Lines(object):
 
     def __init__(self):
         self._ddepth = cv2.CV_16S
         self._kernel_size = 3
-        self._points_arr = []
-
+        self.points_arr = []
 
     def skeletize(self, img, size, skel):
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
@@ -123,10 +123,10 @@ class Lines(Object):
 
         if linesP is not None:
             for line in linesP:
-                for  x1, y1, x2, y2 in line:
+                for x1, y1, x2, y2 in line:
                     slope = (y2 - y1) / (x2 - x1)
-                    self._points_arr.append((x1,y1))
-                    self._points_arr.append((x2,y2))
+                    self.points_arr.append((x1, y1))
+                    self.points_arr.append((x2, y2))
                     # <-- Calculating the slope.
                     if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope
