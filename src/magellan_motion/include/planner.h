@@ -7,6 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <cmath>
 
 // data structure headers
 #include <queue>

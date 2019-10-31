@@ -16,6 +16,7 @@ public:
     void UpdateVelocity();
     void UpdateYaw();
     void Update();
+    void Stop();
     void run();
 private:
     ros::Time time_;
@@ -31,6 +32,7 @@ private:
     double velocity_;
     double steering_angle_;
     uint imu_seq;
+    bool stop_flag;
 
     void UpdateThrottle(const std_msgs::Float64& cmd_velocity);
     void UpdateSteering(const std_msgs::Float64& cmd_radius);

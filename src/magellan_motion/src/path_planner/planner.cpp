@@ -27,7 +27,7 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
           goalY(0),
           _resolution(resolution),
           open_(comp_),
-          map_sub(nh.subscribe("/fake_map", 10, &PathPlanner::mapCallback, this))
+          map_sub(nh.subscribe("/grid", 10, &PathPlanner::mapCallback, this))
 {
     mapSize = 10 / resolution;
     _has_map = false;
@@ -43,7 +43,7 @@ int PathPlanner::getKey(double x, double y) {
 
 Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
     Path p;
-    p.header.frame_id = "map";
+    p.header.frame_id = "base_link";
     p.header.stamp = ros::Time::now();
     double totalCost = 0;
 
@@ -60,6 +60,7 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
         PoseStamped pt;
         pt.pose.position.x = parent->xPose;
         pt.pose.position.y = parent->yPose;
+        pt.header.frame_id = "base_link";
         totalCost = totalCost + parent->gCost;
 
         planVector.push_back(pt);
@@ -85,8 +86,8 @@ Path PathPlanner::plan(Point goal) {
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime =
         std::chrono::high_resolution_clock::now();
 
-    goalX = goal.x;
-    goalY = goal.y;
+    goalX = std::roundf(goal.x * 100) / 100;
+    goalY = std::roundf(goal.y * 100) / 100;
 
     if (!isFree(goalX, goalY)) {
         ROS_ERROR("PathPlanner: Goal is not free!!!!");
@@ -200,22 +201,22 @@ Path PathPlanner::plan(Point goal) {
 
 bool PathPlanner::isFree(double x, double y) {
     int mapWidth = _map.info.width;
-    double mapResolution = _map.info.resolution;
+    double mapResolution = std::roundf(_map.info.resolution * 100.0) / 100.0;
 
     // origin isnt needed because the origin should be center
     // of the robot and x, y should be from robot center
     // the future we should be more general in our frames
 
     if (_resolution != mapResolution) {
-        ROS_WARN_THROTTLE(1, "Path Planner: resoltuion from msg does not match what was expected");
+        ROS_WARN_THROTTLE(1, "Path Planner: resolution from msg does not match what was expected");
     }
 
     // convert x, y to points in map
-    double xRaw = x / .01;
-    double yRaw = y / .01;
+    double xRaw = std::roundf((x - _map.info.origin.position.x) / mapResolution);
+    double yRaw = std::roundf((y - _map.info.origin.position.y) / mapResolution);
 
     int xMap = (int) xRaw;
-    int yMap = (int) yRaw;
+    int yMap = (int) yRaw;;
 
     if (xMap < 0 || yMap < 0) {
         ROS_ERROR_STREAM("Path Planner: X: " << xMap << " and Y: " << yMap << " cell in isFree is negative");

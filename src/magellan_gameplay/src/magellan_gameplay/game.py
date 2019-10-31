@@ -2,34 +2,36 @@
 import rospy
 import actionlib
 
+from geometry_msgs.msg import PoseStamped
 from magellan_motion.msg import PlannerRequestAction, PlannerRequestGoal
 
 
 class GameplayNode(object):
     def __init__(self):
-        self._planner_client = actionlib.SimpleActionClient("planner_request", PlannerRequestAction)
+        self._client = actionlib.SimpleActionClient("planner_request", PlannerRequestAction)
+        self._sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self._point_cb)
 
-        self._planner_client.wait_for_server()
+        self._client.wait_for_server()
 
         if rospy.is_shutdown():
             raise rospy.ROSInitException()
 
-        self._goals = [(1, 2), (3, 4)]
+    def _point_cb(self, msg):
+        try:
+            state = self._client.get_state()
+            if state != 3:
+                self._client.cancel_all_goals()
+        except Exception:
+            rospy.logwarn('GameplayNode: ERROR IN CANCEL PLAN REQUEST')
 
-        self._rate = rospy.Rate(10)
+        goal_ = PlannerRequestGoal()
+        goal_.goal.x = msg.pose.position.x
+        goal_.goal.y = msg.pose.position.y
 
-    def run(self):
-        while not rospy.is_shutdown():
-            goal_ = PlannerRequestGoal()
-            goal_.goal.x = 7
-            goal_.goal.y = 3
-
-            self._planner_client.send_goal_and_wait(goal_)
-
-            self._rate.sleep()
+        self._client.send_goal(goal_)
 
 
 if __name__ == '__main__':
     rospy.init_node('magellan_gameplay')
     node_ = GameplayNode()
-    node_.run()
+    rospy.spin()

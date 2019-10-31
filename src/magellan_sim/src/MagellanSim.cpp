@@ -22,6 +22,7 @@ MagellanSim::MagellanSim(ros::NodeHandle& nh) :
 }
 
 void MagellanSim::run() {
+    stop_flag = false;
     while (node_handle_.ok()) {
         ros::spinOnce();
         ros::Time current_time = ros::Time::now();
@@ -50,8 +51,13 @@ void MagellanSim::run() {
  * Member function to have the sim update and publish simulated values
  */
 void MagellanSim::Update() {
-    UpdateVelocity();
-    UpdateYaw();
+    if (stop_flag) {
+        Stop();
+        UpdateYaw();
+    }else{
+        UpdateVelocity();
+        UpdateYaw();
+    }
 }
 
 void MagellanSim::UpdateVelocity() {
@@ -76,12 +82,12 @@ void MagellanSim::UpdateYaw() {
     imu_msg.angular_velocity_covariance[0] = 1e-9;
     imu_msg.angular_velocity_covariance[4] = 1e-9;
     imu_msg.angular_velocity_covariance[8] = 1e-9;
-    if (commanded_radius_ > 0) {
+    if (commanded_radius_ > 0 && !stop_flag) {
         imu_angular_velocity.z = -0.75;
-    }else if (commanded_radius_ < 0) {
+    }else if (commanded_radius_ < 0 && !stop_flag) {
         imu_angular_velocity.z = 0.75;
 
-    }else if (commanded_radius_ == 0) {
+    }else if (commanded_radius_ == 0 || stop_flag) {
         imu_angular_velocity.z = 0;
     }
     imu_msg.angular_velocity = imu_angular_velocity;
@@ -104,7 +110,10 @@ void MagellanSim::UpdateYaw() {
  */
 void MagellanSim::UpdateThrottle(const std_msgs::Float64& cmd_velocity) {
     commanded_velocity_ = cmd_velocity.data;
-    // velocity_ = commanded_velocity_;
+    if (commanded_velocity_ == 0.0)
+        stop_flag = true;
+    else
+        stop_flag = false;
 }
 
 /*
@@ -113,4 +122,18 @@ void MagellanSim::UpdateThrottle(const std_msgs::Float64& cmd_velocity) {
  */
 void MagellanSim::UpdateSteering(const std_msgs::Float64& cmd_radius) {
     commanded_radius_ = cmd_radius.data;
+}
+
+void MagellanSim::Stop() {
+    geometry_msgs::TwistWithCovarianceStamped twist_msg;
+    twist_msg.header.stamp = time_;
+    twist_msg.twist.twist.linear.x = 0;
+    velocity_publisher_.publish(twist_msg);
+
+    std_msgs::Float64 course_msg;
+    course_msg.data = 0;
+    turning_radius_publisher_.publish(course_msg);
+
+    sensor_msgs::Imu imu_msg;
+    geometry_msgs::Vector3 imu_angular_velocity;
 }
