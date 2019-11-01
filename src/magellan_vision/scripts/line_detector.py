@@ -2,9 +2,10 @@
 
 '''
 Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes to the
-/output/color/image_processed topic(Processed RGB raw Images)
+/output/color/image_processed topic(Processed RGB raw Images) and to the /perception/detetedPoints topic
+(Detected points as a Float64Arr msg)
 
-#TODO: Publish to other topics such as Detected points, Depth Image etc..
+#TODO: Publish to other topics such as Depth Image.
 
 Run Instructions:
     #1 Source the workspace setup folder
@@ -24,7 +25,7 @@ import numpy as np
 import rospy
 from sensor_msgs.msg import Image  # ROS Image Message
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
-from magellan_core.msg import Float64Arr  # ROS Float64Arr type msg
+from magellan_core.msg import Int32XYArr  # ROS Float64Arr type msg
 
 # Global Constant
 VERBOSE = True
@@ -40,7 +41,7 @@ class PubSubNode:
         self._lines_object = Lines()
         # topic where we publish
         self._image_pub = rospy.Publisher("/perception/color/image_processed", Image, queue_size=5)
-        self._point_arr_pub = rospy.Publisher('/perception/detectedPoints', Float64Arr, queue_size=10)
+        self._point_arr_pub = rospy.Publisher('/perception/detectedPoints', Int32XYArr, queue_size=5)
         self._bridge = CvBridge()
 
         # subscribed Topic
@@ -62,9 +63,11 @@ class PubSubNode:
 
         # Line detection
         time1 = time.time()
+
         # TODO: image_np is inherently changed in the Lines() class. Might be useful for it to have its own layer
         image_np = self._lines_object.detect(image_np)
         time2 = time.time()
+
         if VERBOSE:
             print 'Detection processed at %s Hz.' % (1/(time2-time1))
 
@@ -74,9 +77,15 @@ class PubSubNode:
         except CvBridgeError:
             return
 
-        # Publish Processed Image
+        # Put array points into the Int32XYArr[] msg
+        intXYMsg = Int32XYArr()
+        intXYMsg.pixelX = self._lines_object.points_arrX
+        intXYMsg.pixelY = self._lines_object.points_arrY
+
+        # Publish Processed Image amnd Points
         self._image_pub.publish(ros_msg)
-        self._point_arr_pub.publish(self._lines_object.points_arr)
+        self._point_arr_pub.publish(intXYMsg)
+
         time3 = time.time()
         if VERBOSE:
             print 'Subscribe to publish frequency: %s Hz' % (1/(time3-time0))
@@ -89,7 +98,8 @@ class Lines(object):
     def __init__(self):
         self._ddepth = cv2.CV_16S
         self._kernel_size = 3
-        self.points_arr = []
+        self.points_arrX = []
+        self.points_arrY = []
 
     def skeletize(self, img, size, skel):
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
@@ -106,7 +116,8 @@ class Lines(object):
         return skel
 
     def detect(self, cv_image):
-
+        self.points_arrX = []
+        self.points_arrY = []
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
         ret, thresh4 = cv2.threshold(blurred, 200, 255, cv2.THRESH_TOZERO)
@@ -125,8 +136,8 @@ class Lines(object):
             for line in linesP:
                 for x1, y1, x2, y2 in line:
                     slope = (y2 - y1) / (x2 - x1)
-                    self.points_arr.append((x1, y1))
-                    self.points_arr.append((x2, y2))
+                    self.points_arrX.extend([x1, x2])
+                    self.points_arrY.extend([y1, y2])
                     # <-- Calculating the slope.
                     if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope

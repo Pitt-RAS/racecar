@@ -59,6 +59,7 @@ add_message_files(
   ObstacleStamped.msg
   ObstacleStampedArray.msg
   EncoderCount.msg
+  Int32XYArr.msg
 )
 
 ## Generate services in the 'srv' folder
