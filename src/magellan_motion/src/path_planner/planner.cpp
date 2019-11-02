@@ -43,7 +43,7 @@ int PathPlanner::getKey(double x, double y) {
 
 Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
     Path p;
-    p.header.frame_id = "base_link";
+    p.header.frame_id = "odom";
     p.header.stamp = ros::Time::now();
     double totalCost = 0;
 
@@ -60,7 +60,7 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
         PoseStamped pt;
         pt.pose.position.x = parent->xPose;
         pt.pose.position.y = parent->yPose;
-        pt.header.frame_id = "base_link";
+        pt.header.frame_id = "odom";
         totalCost = totalCost + parent->gCost;
 
         planVector.push_back(pt);
@@ -86,8 +86,8 @@ Path PathPlanner::plan(Point goal) {
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime =
         std::chrono::high_resolution_clock::now();
 
-    goalX = std::roundf(goal.x * 100) / 100;
-    goalY = std::roundf(goal.y * 100) / 100;
+    goalX = std::roundf(goal.x);
+    goalY = std::roundf(goal.y);
 
     if (!isFree(goalX, goalY)) {
         ROS_ERROR("PathPlanner: Goal is not free!!!!");
