@@ -1,4 +1,5 @@
 node {
+    def buildUUID = UUID.randomUUID().toString()
     try {
         stage('Pre-build') {
             checkout scm
@@ -6,7 +7,7 @@ node {
         }
 
         stage 'Build'
-        def image = docker.build(UUID.randomUUID().toString())
+        def image = docker.build(buildUUID)
         
         stage('Lint') {
             image.inside {
@@ -41,7 +42,7 @@ node {
     finally {
         stage('Cleanup') {
             cleanWs()
-            sh "docker rmi ${image.id}"
+            sh "docker rmi ${buildUUID}"
         }
     }
 }
