@@ -41,7 +41,7 @@ class PubSubNode(object):
         self._lines_object = Lines()
         # topic where we publish
         self._image_pub = rospy.Publisher("/perception/color/image_processed", Image, queue_size=5)
-        self._point_arr_pub = rospy.Publisher('/perception/detectedPoints', Int32XYArr, queue_size=5)
+        self._point_arr_pub = rospy.Publisher('/perception/detected_points', Int32XYArr, queue_size=5)
         self._bridge = CvBridge()
 
         # subscribed Topic
@@ -157,13 +157,12 @@ def main(args):
     # disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except
     # Exceptions may never be handled
 
-    rospy.init_node('LinesNode', anonymous=True, disable_signals=True)
+    rospy.init_node('LinesNode')
     PubSubNode()
     try:
         rospy.spin()
     except KeyboardInterrupt:
         print "shutting down ROS Lines detector Module"
-    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
