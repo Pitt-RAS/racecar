@@ -1,0 +1,3 @@
+<launch>
+        <node pkg="magellan_vision" type="line_detector.py" name="line_detector_node"/>
+</launch>
