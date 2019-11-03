@@ -104,7 +104,11 @@ class Lines(object):
     def skeletize(self, img, size, skel):
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
         done = False
+<<<<<<< HEAD
         while(not done):
+=======
+        while(not rospy.is_shutdown() and not done):
+>>>>>>> linter
             eroded = cv2.erode(img, element)
             temp = cv2.dilate(eroded, element)
             temp = cv2.subtract(img, temp)
@@ -171,6 +175,7 @@ def main(args):
     try:
         rospy.spin()
 <<<<<<< HEAD
+<<<<<<< HEAD
     except KeyboardInterrupt:
         print "shutting down ROS Lines detector Module"
 
@@ -178,6 +183,11 @@ def main(args):
     except:
        rospy.loginfo("shutting down ROS Lines detector Module")
 >>>>>>> Fixed
+=======
+    except KeyboardInterrupt:
+        rospy.loginfo("shutting down ROS Lines detector Module")
+
+>>>>>>> linter
 
 if __name__ == '__main__':
     main(sys.argv)
