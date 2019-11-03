@@ -8,7 +8,7 @@ node {
 
         stage 'Build'
         def image = docker.build(buildUUID)
-        
+
         stage('Lint') {
             image.inside {
                 sh './lintit.sh'
