@@ -167,6 +167,7 @@ def main(args):
     PubSubNode()
     try:
         rospy.spin()
+<<<<<<< HEAD
     except:
         rospy.loginfo("shutting down ROS Lines detector Module")
 >>>>>>> Fixed
@@ -184,6 +185,8 @@ def main(args):
        rospy.loginfo("shutting down ROS Lines detector Module")
 >>>>>>> Fixed
 =======
+=======
+>>>>>>> lint
     except KeyboardInterrupt:
         rospy.loginfo("shutting down ROS Lines detector Module")
 
