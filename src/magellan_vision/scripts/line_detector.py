@@ -157,13 +157,27 @@ def main(args):
     # disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except
     # Exceptions may never be handled
 
+<<<<<<< HEAD
+=======
+    rospy.init_node('LinesNode', anonymous=False)
+    PubSubNode()
+    try:
+        rospy.spin()
+    except:
+        rospy.loginfo("shutting down ROS Lines detector Module")
+>>>>>>> Fixed
     rospy.init_node('LinesNode')
     PubSubNode()
     try:
         rospy.spin()
+<<<<<<< HEAD
     except KeyboardInterrupt:
         print "shutting down ROS Lines detector Module"
 
+=======
+    except:
+       rospy.loginfo("shutting down ROS Lines detector Module")
+>>>>>>> Fixed
 
 if __name__ == '__main__':
     main(sys.argv)
