@@ -35,7 +35,7 @@ VERBOSE = True
 #                   to the /perception/color/image_processed topic(Processed RGB raw Images) and to the
 #                   /perception/detectedPoints topic(Detected Points as a Float64Arr msg)
 # TODO: Publish to other topics: Depth image; etc..
-class PubSubNode:
+class PubSubNode(object):
     def __init__(self):
         '''Initialize ros publisher, ros subscriber'''
         self._lines_object = Lines()
