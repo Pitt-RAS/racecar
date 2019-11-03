@@ -6,7 +6,7 @@ node {
         }
 
         stage 'Build'
-        def image = docker.build()
+        def image = docker.build(UUID.randomUUID().toString())
         
         stage('Lint') {
             image.inside {
