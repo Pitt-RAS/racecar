@@ -6,8 +6,8 @@ node {
         }
 
         stage 'Build'
-        def image = docker.build "magellan-2018-${BUILD_TAG.toLowerCase()}"
-
+        def image = docker.build
+        
         stage('Lint') {
             image.inside {
                 sh './lintit.sh'
@@ -41,7 +41,7 @@ node {
     finally {
         stage('Cleanup') {
             cleanWs()
-            sh "docker rmi magellan-2018-${BUILD_TAG.toLowerCase()}"
+            sh "docker rmi ${image.id}"
         }
     }
 }
