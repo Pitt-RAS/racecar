@@ -91,7 +91,7 @@ Path PathPlanner::plan(Point goal) {
         std::chrono::high_resolution_clock::now();
 
     //casts the float value (precision to hundredth's place) to an int to be used by the planner
-    //this is so that we can handle floating values better (ex 1.97 --> 197
+    //this is so that we can handle floating values better (ex 1.97 --> 197)cm
     goalX = static_cast<int>(goal.x/0.01);
     goalY = static_cast<int>(goal.y/0.01);
 

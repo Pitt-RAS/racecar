@@ -19,6 +19,9 @@ if __name__ == '__main__':
     numX = int(x_meters/resolution)
     numY = int(y_meters/resolution)
 
+    numX_center = int(numX/2)
+    numY_center = int(numY/2)
+
     x_bounds_lower = 5/resolution
     x_bounds_upper = 6/resolution
 
@@ -27,8 +30,9 @@ if __name__ == '__main__':
 
     map_im = np.zeros(numX*numY, dtype=int)
 
-    for y in range(0, numY):
-        for x in range(0, numX):
+    #fake obstacles centered at (x/2,y/2)
+    for y in range(-numY_center, numY_center):
+        for x in range(-numX_center, numX_center):
             index = numY * y + x
             if x_bounds_lower <= x <= x_bounds_upper:
                 if y <= y_bounds_free or y >= y_bounds_free_upper:
