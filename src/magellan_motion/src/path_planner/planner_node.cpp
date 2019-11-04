@@ -101,12 +101,12 @@ int main(int argc, char** argv)
                 magellan_motion::PlannerRequestResult result_;
 
                 if ( plan.poses.size() >= 0 ) {
-                 	plan_pub.publish(plan);
-                 	result_.success = true;
+                    plan_pub.publish(plan);
+                    result_.success = true;
                 } else {
-                	result_.success = false;
+                    result_.success = false;
                 }
-                
+
                 server.setSucceeded(result_);
             }
         }
