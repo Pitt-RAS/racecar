@@ -46,7 +46,7 @@ void PathFollower::UpdateUserInput(std_msgs::Int32::ConstPtr input) {
 
 void PathFollower::UpdatePath(nav_msgs::Path::ConstPtr path) {
     current_path_ = path;
-    //path_start_index_ = 0;
+    path_start_index_ = 0;
 }
 
 void PathFollower::Update() {

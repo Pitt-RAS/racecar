@@ -97,11 +97,16 @@ int main(int argc, char** argv)
                 ROS_INFO("New goal accepted by planner");
 
                 Path plan = planner.plan(goal_->goal);
-                plan_pub.publish(plan);
 
                 magellan_motion::PlannerRequestResult result_;
 
-                result_.success = true;
+                if ( plan.poses.size() >= 0 ) {
+                 	plan_pub.publish(plan);
+                 	result_.success = true;
+                } else {
+                	result_.success = false;
+                }
+                
                 server.setSucceeded(result_);
             }
         }
