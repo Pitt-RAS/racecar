@@ -17,8 +17,12 @@ static const int NUMOFDIRS = 8;
 static const int dX[NUMOFDIRS] = {-1, -1, -1,  0,  0,  1, 1, 1};
 static const int dY[NUMOFDIRS] = {-1,  0,  1, -1,  1, -1, 0, 1};
 static const double costs[NUMOFDIRS] = {SQRT2,  1,  SQRT2, 1,  1, SQRT2, 1, SQRT2};
+static const int floatPrecision = 100;
+static const int floatPrecisionDivide = 1/floatPrecision;
 
 using namespace MagellanPlanner;
+
+//TODO: Change SUCCESSOR values to divide by 0.01 & cast as int (static cast C++)
 
 PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
         : startX(0),
@@ -33,7 +37,7 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
     _has_map = false;
 }
 
-int PathPlanner::getKey(double x, double y) {
+int PathPlanner::getKey(int x, int y) {
     // gets a unique number for any 2 integers
     // first convert to cell coordinates
     int xMap = (int) x / _resolution;
@@ -58,8 +62,8 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
 
     while (parent != nullptr) {
         PoseStamped pt;
-        pt.pose.position.x = parent->xPose;
-        pt.pose.position.y = parent->yPose;
+        pt.pose.position.x = static_cast<float>(parent->xPose)/floatPrecision;
+        pt.pose.position.y = static_cast<float>(parent->yPose)/floatPrecision;
         pt.header.frame_id = "odom";
         totalCost = totalCost + parent->gCost;
 
@@ -86,8 +90,10 @@ Path PathPlanner::plan(Point goal) {
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime =
         std::chrono::high_resolution_clock::now();
 
-    goalX = std::roundf(goal.x);
-    goalY = std::roundf(goal.y);
+    //casts the float value (precision to hundredth's place) to an int to be used by the planner
+    //this is so that we can handle floating values better (ex 1.97 --> 197
+    goalX = static_cast<int>(goal.x/0.01);
+    goalY = static_cast<int>(goal.y/0.01);
 
     if (!isFree(goalX, goalY)) {
         ROS_ERROR("PathPlanner: Goal is not free!!!!");
@@ -138,8 +144,8 @@ Path PathPlanner::plan(Point goal) {
         for (int dir = 0; dir < NUMOFDIRS; dir++) {
             numSucc++;
             // generate all valid successors
-            double newx = next->xPose + dX[dir] * .1;
-            double newy = next->yPose + dY[dir] * .1;
+            int newx = next->xPose + dX[dir];
+            int newy = next->yPose + dY[dir];
 
             double xCellsRaw = newx / _resolution;
             double yCellsRaw = newy / _resolution;
@@ -199,7 +205,7 @@ Path PathPlanner::plan(Point goal) {
     return p;
 }
 
-bool PathPlanner::isFree(double x, double y) {
+bool PathPlanner::isFree(int x, int y) {
     int mapWidth = _map.info.width;
     double mapResolution = std::roundf(_map.info.resolution * 100.0) / 100.0;
 
@@ -235,17 +241,15 @@ bool PathPlanner::isFree(double x, double y) {
     return (_map.data[index] != 100);
 }
 
-double PathPlanner::getHeuristic(double x, double y) {
+double PathPlanner::getHeuristic(int x, int y) {
     // eight connected grid
     double h = (SQRT2_MINUS_ONE * MIN(abs(goalX - x), abs(goalY - y)) +
                 MAX(abs(goalX - x), abs(goalY - y)));
     return h;
 }
 
-bool PathPlanner::isGoal(double x, double y) {
-    double dist = std::sqrt(std::pow((x - goalX), 2)) + std::sqrt(std::pow((y - goalY), 2));
-
-    return (dist <= _resolution);
+bool PathPlanner::isGoal(int x, int y) {
+    return (x == goalX) && (y == goalY);
 }
 
 void PathPlanner::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {

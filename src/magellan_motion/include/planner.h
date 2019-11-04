@@ -29,8 +29,8 @@ struct Successor {
     bool closed;
     double gCost;     // g* value
     double hCost;     // H value
-    double xPose;
-    double yPose;
+    int xPose;
+    int yPose;
     int key;
     std::shared_ptr<Successor> parent;
 };
@@ -39,13 +39,13 @@ struct Successor {
 class PathPlanner {
 public:
     PathPlanner(ros::NodeHandle& nh, double resolution);
-    int getKey(double x, double y);
+    int getKey(int x, int y);
     Path getPlan(std::shared_ptr<Successor> goalNode);
     Path plan(Point goal);
 private:
-    bool isFree(double x, double y);
-    double getHeuristic(double x, double y);
-    bool isGoal(double x, double y);
+    bool isFree(int x, int y);
+    double getHeuristic(int x, int y);
+    bool isGoal(int x, int y);
     void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
     std::unordered_map<int, std::shared_ptr<Successor> > nodes;
@@ -66,10 +66,10 @@ private:
 
     ros::Subscriber map_sub;
 
-    double startX;
-    double startY;
-    double goalX;
-    double goalY;
+    int startX;
+    int startY;
+    int goalX;
+    int goalY;
     double _resolution;
     double mapSize; // num of cells in graph
     bool _has_map;
