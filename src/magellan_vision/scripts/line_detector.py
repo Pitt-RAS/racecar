@@ -58,6 +58,7 @@ class PubSubNode(object):
         try:
             image_np = self._bridge.imgmsg_to_cv2(ros_data, "bgr8")
         except CvBridgeError:
+            rospy.logdebug('Could not convert image')
             return
 
         # Line detection
