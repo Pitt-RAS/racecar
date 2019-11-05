@@ -92,8 +92,8 @@ Path PathPlanner::plan(Point goal) {
 
     //casts the float value (precision to hundredth's place) to an int to be used by the planner
     //this is so that we can handle floating values better (ex 1.97 --> 197)
-    goalX = static_cast<int>(goal.x / 0.01);
-    goalY = static_cast<int>(goal.y / 0.01);
+    goalX = static_cast<int>(goal.x * floatPrecision);
+    goalY = static_cast<int>(goal.y * floatPrecision);
 
     if (!isFree(goalX, goalY)) {
         ROS_ERROR("PathPlanner: Goal is not free!!!!");
