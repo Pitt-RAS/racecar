@@ -1,3 +1,11 @@
 <launch>
         <node pkg="magellan_vision" type="line_detector.py" name="line_detector_node"/>
+        <param name="verbose" type="boolean" value="false"/>
+        <param name="rho" type="int" value="6"/>
+        <param name="theta" type="double" value="0.05235987755"/>
+        <param name="threshold" type="int" value="50"/>
+        <param name="min_line_length" type="int" value="30"/>
+        <param name="max_line_gap" type="int" value="10"/>
+        <param name="kernel_size" type="int" value="3"/>
+        <param name="ddepth" type="" value=""/>
 </launch>

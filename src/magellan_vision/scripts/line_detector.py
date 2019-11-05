@@ -1,17 +1,5 @@
 #!/usr/bin/env python
 
-'''
-Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes to the
-/output/color/image_processed topic(Processed RGB raw Images) and to the /perception/detetedPoints topic
-(Detected points as a Float64Arr msg)
-
-#TODO: Publish to other topics such as Depth Image.
-
-Run Instructions:
-    #1 Source the workspace setup folder
-    #2 run the ./init.sh file from the magellan_vision directory # Will be removed in future release
-'''
-
 # Python libs
 import sys
 import time
@@ -28,13 +16,21 @@ from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and R
 from magellan_core.msg import Int32XYArr  # ROS Float64Arr type msg
 
 # Global Constant
+<<<<<<< HEAD
 VERBOSE = True
+=======
+VERBOSE = ropsy.get_param("VERBOSE")
+DDEPTH = rospy.get_param("ddepth")
+KERNEL_SIZE = rospy.get_param("kernel_size")
+RHO = rospy.get_param("rho")
+THETA = rospy.get_param("theta")
+THRESHOLD = rospy.get_param("threshold")
+MINLINELENGTH = rospy.get_param("min_line_length")
+MAXLINEGAP = rospy.get_param("max_line_gap")
+
+>>>>>>> params added and implemented
 
 
-# Class PubSubNode: Subscribes to the /camera/color/image_raw topic(RGB Images from realsense camera) and publishes
-#                   to the /perception/color/image_processed topic(Processed RGB raw Images) and to the
-#                   /perception/detectedPoints topic(Detected Points as a Float64Arr msg)
-# TODO: Publish to other topics: Depth image; etc..
 class PubSubNode(object):
     def __init__(self):
         '''Initialize ros publisher, ros subscriber'''
@@ -96,8 +92,8 @@ class PubSubNode(object):
 class Lines(object):
 
     def __init__(self):
-        self._ddepth = cv2.CV_16S
-        self._kernel_size = 3
+        self._ddepth = DDEPTH
+        self._kernel_size = KERNEL_SIZE
         self.points_arrX = []
         self.points_arrY = []
 
@@ -133,8 +129,8 @@ class Lines(object):
         dst = cv2.Laplacian(skeleton, self._ddepth, ksize=self._kernel_size)
         abs_dst = cv2.convertScaleAbs(dst)
 
-        linesP = cv2.HoughLinesP(abs_dst, rho=6, theta=np.pi / 60, threshold=50,
-                                 lines=np.array([]), minLineLength=30, maxLineGap=10)
+        linesP = cv2.HoughLinesP(abs_dst, rho=RHO, theta=THETA, threshold=THRESHOLD,
+                                 lines=np.array([]), minLineLength=MINLINELENGTH, maxLineGap=MAXLINEGAP)
 
         if linesP is not None:
             for line in linesP:
@@ -162,8 +158,12 @@ def main(args):
     # Exceptions may never be handled
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     rospy.init_node('LinesNode', anonymous=False)
+=======
+    rospy.init_node('LinesNode')
+>>>>>>> params added and implemented
     PubSubNode()
     try:
         rospy.spin()
