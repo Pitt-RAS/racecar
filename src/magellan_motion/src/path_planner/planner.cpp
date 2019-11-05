@@ -235,8 +235,11 @@ bool PathPlanner::isFree(int x, int y) {
 
 double PathPlanner::getHeuristic(int x, int y) {
     // eight connected grid
-    double h = (SQRT2_MINUS_ONE * MIN(abs(goalX - x), abs(goalY - y)) +
-                MAX(abs(goalX - x), abs(goalY - y)));
+    double goalX_double = static_cast<double>(goalX), goalY_double = static_cast<double>(goalY);
+    double x_double = static_cast<double>(x), y_double = static_cast<double>(y);
+
+    double h = (SQRT2_MINUS_ONE * MIN(abs(goalX_double - x_double), abs(goalY_double - y_double)) +
+                MAX(abs(goalX_double - x_double), abs(goalY_double - y_double)));
     return h;
 }
 
