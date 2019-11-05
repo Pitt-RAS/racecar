@@ -7,6 +7,7 @@ import tf
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose
+# TODO: Add the message type for detected points
 
 # initialize node
 rospy.init_node('later_to_occupancy_grid_node')
@@ -39,15 +40,18 @@ scan_sequence = 0
 
 def points_to_scan(msg):
 	LaserScan lsr_msg = LaserScan()
+	# Is base_link the correct frame?
 	header = Header(rospy.Time.now(), frame = 'base_link')
+	# TODO: double check that angle_min and angle_max are correct AND convert to rads
 	angle_min = 0.0
 	angle_max = 80.0
 	angle_increment = (angle_max - angle_min)/resolution
 	num_of_indexes = (angle_max/angle_increment) + 1
+	# Fill array with positive infinity values
 	pos_inf = float("inf")
 	ranges = numpy.full((num_of_indexes,),pos_inf)
 
-	lsr_msg.Header = header
+	lsr_msg.header = header
 	lsr_msg.angle_min = angle_min
 	lsr_msg.angle_min = angle_max
 	lsr_msg.angle_min = angle_increment
