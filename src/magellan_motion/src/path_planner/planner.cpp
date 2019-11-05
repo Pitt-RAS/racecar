@@ -18,7 +18,7 @@ static const int dX[NUMOFDIRS] = {-1, -1, -1,  0,  0,  1, 1, 1};
 static const int dY[NUMOFDIRS] = {-1,  0,  1, -1,  1, -1, 0, 1};
 static const double costs[NUMOFDIRS] = {SQRT2,  1,  SQRT2, 1,  1, SQRT2, 1, SQRT2};
 static const int floatPrecision = 100;
-static const int floatPrecisionDivide = 1/floatPrecision;
+static const int floatPrecisionDivide = 1 / floatPrecision;
 
 using namespace MagellanPlanner;
 
@@ -62,8 +62,8 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
 
     while (parent != nullptr) {
         PoseStamped pt;
-        pt.pose.position.x = static_cast<float>(parent->xPose)/floatPrecision;
-        pt.pose.position.y = static_cast<float>(parent->yPose)/floatPrecision;
+        pt.pose.position.x = static_cast<float>(parent->xPose) / floatPrecision;
+        pt.pose.position.y = static_cast<float>(parent->yPose) / floatPrecision;
         pt.header.frame_id = "odom";
         totalCost = totalCost + parent->gCost;
 
@@ -91,9 +91,9 @@ Path PathPlanner::plan(Point goal) {
         std::chrono::high_resolution_clock::now();
 
     //casts the float value (precision to hundredth's place) to an int to be used by the planner
-    //this is so that we can handle floating values better (ex 1.97 --> 197)cm
-    goalX = static_cast<int>(goal.x/0.01);
-    goalY = static_cast<int>(goal.y/0.01);
+    //this is so that we can handle floating values better (ex 1.97 --> 197)
+    goalX = static_cast<int>(goal.x / 0.01);
+    goalY = static_cast<int>(goal.y / 0.01);
 
     if (!isFree(goalX, goalY)) {
         ROS_ERROR("PathPlanner: Goal is not free!!!!");
