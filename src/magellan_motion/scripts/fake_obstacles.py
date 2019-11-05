@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     map_im = np.zeros(numX*numY, dtype=int)
 
-    #fake obstacles centered at (x/2,y/2)
+    # fake obstacles centered at (x/2,y/2)
     for y in range(-numY_center, numY_center):
         for x in range(-numX_center, numX_center):
             index = numY * y + x
