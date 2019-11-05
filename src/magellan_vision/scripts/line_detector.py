@@ -17,9 +17,13 @@ from magellan_core.msg import Int32XYArr  # ROS Float64Arr type msg
 
 # Global Constant
 <<<<<<< HEAD
+<<<<<<< HEAD
 VERBOSE = True
 =======
 VERBOSE = ropsy.get_param("VERBOSE")
+=======
+VERBOSE = rospy.get_param("VERBOSE")
+>>>>>>> lint
 DDEPTH = rospy.get_param("ddepth")
 KERNEL_SIZE = rospy.get_param("kernel_size")
 RHO = rospy.get_param("rho")
@@ -29,7 +33,6 @@ MINLINELENGTH = rospy.get_param("min_line_length")
 MAXLINEGAP = rospy.get_param("max_line_gap")
 
 >>>>>>> params added and implemented
-
 
 class PubSubNode(object):
     def __init__(self):
