@@ -40,9 +40,7 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
 int PathPlanner::getKey(int x, int y) {
     // gets a unique number for any 2 integers
     // first convert to cell coordinates
-    int xMap = (int) x / _resolution;
-    int yMap = (int) y / _resolution;
-    return ((xMap + yMap) * (xMap + yMap + 1) / 2 + yMap);
+    return ((x + y) * (x + y + 1) / 2 + y);
 }
 
 Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
