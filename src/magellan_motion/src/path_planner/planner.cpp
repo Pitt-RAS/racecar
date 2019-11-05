@@ -145,13 +145,7 @@ Path PathPlanner::plan(Point goal) {
             int newx = next->xPose + dX[dir];
             int newy = next->yPose + dY[dir];
 
-            double xCellsRaw = newx / _resolution;
-            double yCellsRaw = newy / _resolution;
-
-            int xCells = (int) xCellsRaw;
-            int yCells = (int) yCellsRaw;
-
-            int key = getKey(xCells, yCells);
+            int key = getKey(newx, newy);
             double cc = costs[dir] + next->gCost;
 
             bool alreadyOpen = (nodes.count(key) != 0);
