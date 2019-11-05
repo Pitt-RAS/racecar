@@ -34,6 +34,35 @@ rate = 5.0
 # Range data
 car_range = 0.0
 
+# Sequence for laser scan messages
+scan_sequence = 0
+
+def points_to_scan(msg):
+	LaserScan lsr_msg = LaserScan()
+	header = Header(rospy.Time.now(), frame = 'base_link')
+	angle_min = 0.0
+	angle_max = 80.0
+	angle_increment = (angle_max - angle_min)/resolution
+	num_of_indexes = (angle_max/angle_increment) + 1
+	pos_inf = float("inf")
+	ranges = numpy.full((num_of_indexes,),pos_inf)
+
+	lsr_msg.Header = header
+	lsr_msg.angle_min = angle_min
+	lsr_msg.angle_min = angle_max
+	lsr_msg.angle_min = angle_increment
+	lsr_msg.ranges = ranges
+
+	for point in msg.points:
+		angle = numpy.arctan(float(point.y)/float(point.x))
+		dist = sqrt(point.y*point.y + point.x+point.x)
+		if(angle<angle_min or angle>angle_max):
+			continue
+		index = angle//angle_increment
+		ranges[index] = dist
+
+	return lsr_msg
+
 def set_free_cells(grid, position, size):
 	# set free the cells occupied by the car
 	# grid:				ndarray [width,height]
@@ -91,11 +120,12 @@ def set_obstacle(grid, position, orientation, position_sonar, quaternion_sonar, 
 def callback_range(msg):
 	# callback range
 	global car_range
-	car_range = msg.ranges[0]
+	car_range = points_to_scan(msg)
 
 
 # Subscribers
-range_sub = rospy.Subscriber("/car/scan", LaserScan, callback_range)
+# TODO: Change this subscribtion to the correct topic and message type
+detected_points_sub = rospy.Subscriber("/car/scan", LaserScan, callback_range)
 
 # Publishers
 occ_pub = rospy.Publisher("/car/map", OccupancyGrid, queue_size = 10)
