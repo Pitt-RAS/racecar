@@ -13,7 +13,7 @@ import numpy as np
 import rospy
 from sensor_msgs.msg import Image  # ROS Image Message
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
-from magellan_core.msg import Int32XYArr  # ROS Float64Arr type msg
+# from magellan_core.msg import Int32XYArr  # ROS Float64Arr type msg
 
 # Global Constant
 <<<<<<< HEAD
@@ -23,8 +23,12 @@ VERBOSE = True
 VERBOSE = ropsy.get_param("VERBOSE")
 =======
 VERBOSE = rospy.get_param("VERBOSE")
+<<<<<<< HEAD
 >>>>>>> lint
 DDEPTH = rospy.get_param("ddepth")
+=======
+# DDEPTH = rospy.get_param("ddepth")
+>>>>>>> quickfix
 KERNEL_SIZE = rospy.get_param("kernel_size")
 RHO = rospy.get_param("rho")
 THETA = rospy.get_param("theta")
@@ -40,7 +44,7 @@ class PubSubNode(object):
         self._lines_object = Lines()
         # topic where we publish
         self._image_pub = rospy.Publisher("/perception/color/image_processed", Image, queue_size=5)
-        self._point_arr_pub = rospy.Publisher('/perception/detected_points', Int32XYArr, queue_size=5)
+        # self._point_arr_pub = rospy.Publisher('/perception/detected_points', Int32XYArr, queue_size=5)
         self._bridge = CvBridge()
 
         # subscribed Topic
@@ -78,13 +82,13 @@ class PubSubNode(object):
             return
 
         # Put array points into the Int32XYArr[] msg
-        intXYMsg = Int32XYArr()
-        intXYMsg.pixelX = self._lines_object.points_arrX
-        intXYMsg.pixelY = self._lines_object.points_arrY
+        # intXYMsg = Int32XYArr()
+        # intXYMsg.pixelX = self._lines_object.points_arrX
+        # intXYMsg.pixelY = self._lines_object.points_arrY
 
         # Publish Processed Image amnd Points
         self._image_pub.publish(ros_msg)
-        self._point_arr_pub.publish(intXYMsg)
+        # self._point_arr_pub.publish(intXYMsg)
 
         time3 = time.time()
         if VERBOSE:
@@ -96,7 +100,7 @@ class PubSubNode(object):
 class Lines(object):
 
     def __init__(self):
-        self._ddepth = DDEPTH
+        self._ddepth = cv2.CV_16S
         self._kernel_size = KERNEL_SIZE
         self.points_arrX = []
         self.points_arrY = []
