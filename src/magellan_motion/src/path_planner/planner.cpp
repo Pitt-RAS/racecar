@@ -161,30 +161,28 @@ Path PathPlanner::plan(Point goal) {
             }
 
             if (goodAdd) {
-                if (newx >= 0 && newx <= 10 && newy >= 0 && newy <= 10) {
-                    // if inside map
-                    if (isFree(newx,newy)) {
-                        // if free
-                        std::shared_ptr<Successor> newNode = std::make_shared<Successor>();
-                        newNode->gCost = cc;
-                        newNode->hCost = getHeuristic(newx, newy);
-                        newNode->xPose = newx;
-                        newNode->yPose = newy;
-                        newNode->closed = false;
-                        newNode->key = key;
-                        newNode->parent = next;
+                // if inside map
+                if (isFree(newx,newy)) {
+                    // if free
+                    std::shared_ptr<Successor> newNode = std::make_shared<Successor>();
+                    newNode->gCost = cc;
+                    newNode->hCost = getHeuristic(newx, newy);
+                    newNode->xPose = newx;
+                    newNode->yPose = newy;
+                    newNode->closed = false;
+                    newNode->key = key;
+                    newNode->parent = next;
 
-                        // remove the duplicate
-                        if (alreadyOpen) {
-                            nodes[key]->closed = true;
-                            nodes.erase(key);
-                            numErased++;
-                        }
-
-                        nodes.insert({key, newNode});
-                        open_.push(newNode);
-                        numInsert++;
+                    // remove the duplicate
+                    if (alreadyOpen) {
+                        nodes[key]->closed = true;
+                        nodes.erase(key);
+                        numErased++;
                     }
+
+                    nodes.insert({key, newNode});
+                    open_.push(newNode);
+                    numInsert++;
                 }
             }
         }
