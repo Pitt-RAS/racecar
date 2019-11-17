@@ -71,7 +71,6 @@ private:
     int goalX;
     int goalY;
     double _resolution;
-    double mapSize; // num of cells in graph
     bool _has_map;
 };
 }

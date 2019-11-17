@@ -10,19 +10,16 @@
 
 static const double SQRT2_MINUS_ONE = 0.4142135624;
 static const double SQRT2 = 1.4142135624;
-static const double INF_VALUE = 999999;
 
 // 8-connected grid
 static const int NUMOFDIRS = 8;
 static const int dX[NUMOFDIRS] = {-1, -1, -1,  0,  0,  1, 1, 1};
 static const int dY[NUMOFDIRS] = {-1,  0,  1, -1,  1, -1, 0, 1};
 static const double costs[NUMOFDIRS] = {SQRT2,  1,  SQRT2, 1,  1, SQRT2, 1, SQRT2};
-static const int floatPrecision = 100;
-static const int floatPrecisionDivide = 1 / floatPrecision;
+static const int floatPrecision = 100; // make ros param
+static const int floatPrecisionDivide = 0.01; // make ros param
 
 using namespace MagellanPlanner;
-
-//TODO: Change SUCCESSOR values to divide by 0.01 & cast as int (static cast C++)
 
 PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
         : startX(0),
@@ -33,7 +30,6 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
           open_(comp_),
           map_sub(nh.subscribe("/grid", 10, &PathPlanner::mapCallback, this))
 {
-    mapSize = 10 / resolution;
     _has_map = false;
 }
 
@@ -49,6 +45,8 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
     p.header.stamp = ros::Time::now();
     double totalCost = 0;
 
+    //lookup transform between rosparam frame & baselink
+
     std::vector<PoseStamped> planVector;
 
     if (goalNode == nullptr) {
@@ -60,9 +58,9 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
 
     while (parent != nullptr) {
         PoseStamped pt;
-        pt.pose.position.x = static_cast<float>(parent->xPose) / floatPrecision;
-        pt.pose.position.y = static_cast<float>(parent->yPose) / floatPrecision;
-        pt.header.frame_id = "odom";
+        pt.pose.position.x = static_cast<float>(parent->xPose) * floatPrecisionDivide;
+        pt.pose.position.y = static_cast<float>(parent->yPose) * floatPrecisionDivide;
+        pt.header.frame_id = "odom"; // TODO fix to param frame
         totalCost = totalCost + parent->gCost;
 
         planVector.push_back(pt);
@@ -88,8 +86,10 @@ Path PathPlanner::plan(Point goal) {
     std::chrono::time_point<std::chrono::high_resolution_clock> startTime =
         std::chrono::high_resolution_clock::now();
 
-    //casts the float value (precision to hundredth's place) to an int to be used by the planner
-    //this is so that we can handle floating values better (ex 1.97 --> 197)
+    // casts the float value (precision to hundredth's place) to an int to be used by the planner
+    // this is so that we can handle floating values better (ex 1.97 --> 197)
+
+    // TODO: transform goal into base_link frame
     goalX = static_cast<int>(goal.x * floatPrecision);
     goalY = static_cast<int>(goal.y * floatPrecision);
 
@@ -207,37 +207,28 @@ bool PathPlanner::isFree(int x, int y) {
         ROS_WARN_THROTTLE(1, "Path Planner: resolution from msg does not match what was expected");
     }
 
-    // convert x, y to points in map
-    double xRaw = std::roundf((x - _map.info.origin.position.x) / mapResolution);
-    double yRaw = std::roundf((y - _map.info.origin.position.y) / mapResolution);
-
-    int xMap = (int) xRaw;
-    int yMap = (int) yRaw;;
-
-    if (xMap < 0 || yMap < 0) {
+    if (x < 0 || y < 0) {
         ROS_ERROR_STREAM("Path Planner: X: " << xMap << " and Y: " << yMap << " cell in isFree is negative");
         return false;
     }
 
-    if (xMap > mapWidth || yMap > mapWidth) {
+    if (x > mapWidth || y > mapWidth) {
         ROS_ERROR_STREAM("PathPlanner: X or Y cells are outside map. X = " << xMap << " Y = " << yMap);
         return false;
     }
 
     // convert to row major order
-    double indexRaw = yMap * mapWidth + xMap;
-    int index = (int) indexRaw;
+    int index = y * mapWidth + x;
 
     return (_map.data[index] != 100);
 }
 
 double PathPlanner::getHeuristic(int x, int y) {
     // eight connected grid
-    double goalX_double = static_cast<double>(goalX), goalY_double = static_cast<double>(goalY);
-    double x_double = static_cast<double>(x), y_double = static_cast<double>(y);
+    double xDiff = static_cast<double>(goalX - x);
+    double yDiff = static_cast<double>(goalY - y);
 
-    double h = (SQRT2_MINUS_ONE * MIN(abs(goalX_double - x_double), abs(goalY_double - y_double)) +
-                MAX(abs(goalX_double - x_double), abs(goalY_double - y_double)));
+    double h = (SQRT2_MINUS_ONE * MIN(abs(xDiff), abs(yDiff)) + MAX(abs(xDiff), abs(yDiff)));
     return h;
 }
 
