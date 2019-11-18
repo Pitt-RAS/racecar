@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import time
 import math
 import threading 
 
@@ -80,18 +79,18 @@ class PubSubNode(object):
         with self._lock: 
             # Line detection
             if self._image is not None:
-	            image_np = self._lines_object.detect(self._image)
+                image_np = self._lines_object.detect(self._image)
 
-	            # conversion back to Image
-	            try:
-	                ros_msg = self._bridge.cv2_to_imgmsg(image_np)
-	            except CvBridgeError:
-	                rospy.logdebug('Could not convert image')
-	                return
+                # conversion back to Image
+                try:
+                    ros_msg = self._bridge.cv2_to_imgmsg(image_np)
+                except CvBridgeError:
+                    rospy.logdebug('Could not convert image')
+                    return
 
-	            # Publish Processed Image amnd Points
-	            self._image_pub.publish(ros_msg)
-	            # self._point_arr_pub.publish(intXYMsg)
+                # Publish Processed Image amnd Points
+                self._image_pub.publish(ros_msg)
+                # self._point_arr_pub.publish(intXYMsg)
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
