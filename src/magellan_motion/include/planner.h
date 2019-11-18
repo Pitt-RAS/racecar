@@ -72,6 +72,10 @@ private:
     int goalY;
     double _resolution;
     bool _has_map;
+
+    int floatPrecision; // make ros param
+    double floatPrecisionDivide; // make ros param
+    std::string transformFrame;
 };
 }
 #endif // MAGELLAN_PLANNER_H

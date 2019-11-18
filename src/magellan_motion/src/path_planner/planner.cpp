@@ -16,8 +16,9 @@ static const int NUMOFDIRS = 8;
 static const int dX[NUMOFDIRS] = {-1, -1, -1,  0,  0,  1, 1, 1};
 static const int dY[NUMOFDIRS] = {-1,  0,  1, -1,  1, -1, 0, 1};
 static const double costs[NUMOFDIRS] = {SQRT2,  1,  SQRT2, 1,  1, SQRT2, 1, SQRT2};
-static const int floatPrecision = 100; // make ros param
-static const int floatPrecisionDivide = 0.01; // make ros param
+static int floatPrecision; // make ros param
+static double floatPrecisionDivide; // make ros param
+static std::string transformFrame;
 
 using namespace MagellanPlanner;
 
@@ -30,6 +31,12 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
           open_(comp_),
           map_sub(nh.subscribe("/grid", 10, &PathPlanner::mapCallback, this))
 {
+    nh.getParam("~float_precision", floatPrecision);
+    nh.getParam("~float_precision_divide", floatPrecisionDivide);
+    nh.getParam("~transform_frame", transformFrame);
+
+    std::cout << floatPrecision << " " << floatPrecisionDivide << " " << transformFrame << std::endl;
+
     _has_map = false;
 }
 
@@ -41,7 +48,7 @@ int PathPlanner::getKey(int x, int y) {
 
 Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
     Path p;
-    p.header.frame_id = "odom";
+    p.header.frame_id = transformFrame;
     p.header.stamp = ros::Time::now();
     double totalCost = 0;
 
@@ -60,7 +67,7 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
         PoseStamped pt;
         pt.pose.position.x = static_cast<float>(parent->xPose) * floatPrecisionDivide;
         pt.pose.position.y = static_cast<float>(parent->yPose) * floatPrecisionDivide;
-        pt.header.frame_id = "odom"; // TODO fix to param frame
+        pt.header.frame_id = transformFrame; // TODO fix to param frame
         totalCost = totalCost + parent->gCost;
 
         planVector.push_back(pt);
