@@ -208,12 +208,12 @@ bool PathPlanner::isFree(int x, int y) {
     }
 
     if (x < 0 || y < 0) {
-        ROS_ERROR_STREAM("Path Planner: X: " << xMap << " and Y: " << yMap << " cell in isFree is negative");
+        ROS_ERROR_STREAM("Path Planner: X: " << x << " and Y: " << y << " cell in isFree is negative");
         return false;
     }
 
     if (x > mapWidth || y > mapWidth) {
-        ROS_ERROR_STREAM("PathPlanner: X or Y cells are outside map. X = " << xMap << " Y = " << yMap);
+        ROS_ERROR_STREAM("PathPlanner: X or Y cells are outside map. X = " << x << " Y = " << y);
         return false;
     }
 
