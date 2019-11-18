@@ -2,7 +2,7 @@
 
 import sys
 import math
-import threading 
+import threading
 
 import rospy
 
@@ -46,15 +46,14 @@ from sensor_msgs.msg import Image
 class PubSubNode(object):
     def __init__(self):
         # TODO FIX THIS
-        try: 
+        try:
             # Global Constant
             self._VERBOSE = rospy.get_param("VERBOSE")
-        except KeyError as e: 
+        except KeyError as e:
             rospy.logerr("LineDetector: error in looking up param. {}".format(e))
             raise
 
         self._lock = threading.RLock()
-
 
         '''Initialize ros publisher, ros subscriber'''
         self._lines_object = Lines()
@@ -76,7 +75,7 @@ class PubSubNode(object):
 >>>>>>> Lowered CPU usage
 
     def run_detects(self):
-        with self._lock: 
+        with self._lock:
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
@@ -94,7 +93,9 @@ class PubSubNode(object):
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
+
     def _callback(self, ros_data):
+<<<<<<< HEAD
 <<<<<<< HEAD
         '''Callback function of subscribed topic.
         Here images get converted and features detected and published'''
@@ -139,6 +140,9 @@ class PubSubNode(object):
 
 =======
         with self._lock: 
+=======
+        with self._lock:
+>>>>>>> Lint 2x
             if self._VERBOSE:
                 rospy.logdebug('received image of type: "%s"' % type(ros_data))
             # conversion to cv2
@@ -151,6 +155,8 @@ class PubSubNode(object):
 
 # Class Lines: Detects points in an Image that aligns into a line. Outputs the image with detected points overlayed
 #              on it.
+
+
 class Lines(object):
 
     def __init__(self):
