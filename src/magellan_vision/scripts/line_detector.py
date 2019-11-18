@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
-# Python libs
 import sys
 import time
 import math
+import threading 
 
-# Numpy and OpenCV
+import rospy
+
 import cv2
 import numpy as np
 
+<<<<<<< HEAD
 # ROS imports
 import rospy
 from sensor_msgs.msg import Image  # ROS Image Message
@@ -35,11 +37,26 @@ THETA = rospy.get_param("theta")
 THRESHOLD = rospy.get_param("threshold")
 MINLINELENGTH = rospy.get_param("min_line_length")
 MAXLINEGAP = rospy.get_param("max_line_gap")
+=======
+from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image
+>>>>>>> Lowered CPU usage
 
 >>>>>>> params added and implemented
 
 class PubSubNode(object):
     def __init__(self):
+        # TODO FIX THIS
+        try: 
+            # Global Constant
+            self._VERBOSE = rospy.get_param("VERBOSE")
+        except KeyError as e: 
+            rospy.logerr("LineDetector: error in looking up param. {}".format(e))
+            raise
+
+        self._lock = threading.RLock()
+
+
         '''Initialize ros publisher, ros subscriber'''
         self._lines_object = Lines()
         # topic where we publish
@@ -49,10 +66,37 @@ class PubSubNode(object):
 
         # subscribed Topic
         self._subscriber = rospy.Subscriber("/camera/color/image_raw", Image, self._callback, queue_size=1)
+<<<<<<< HEAD
         if VERBOSE:
             print "subscribed to /camera/color/image_raw"
+=======
+        self._image = None
 
+        if self._VERBOSE:
+            rospy.logdebug("subscribed to /camera/color/image_raw")
+>>>>>>> Lowered CPU usage
+
+    def run_detects(self):
+        with self._lock: 
+            # Line detection
+            if self._image is not None:
+	            image_np = self._lines_object.detect(self._image)
+
+	            # conversion back to Image
+	            try:
+	                ros_msg = self._bridge.cv2_to_imgmsg(image_np)
+	            except CvBridgeError:
+	                rospy.logdebug('Could not convert image')
+	                return
+
+	            # Publish Processed Image amnd Points
+	            self._image_pub.publish(ros_msg)
+	            # self._point_arr_pub.publish(intXYMsg)
+
+    '''Callback function of subscribed topic.
+    Here images get converted and features detected and published'''
     def _callback(self, ros_data):
+<<<<<<< HEAD
         '''Callback function of subscribed topic.
         Here images get converted and features detected and published'''
         if VERBOSE:
@@ -94,6 +138,17 @@ class PubSubNode(object):
         if VERBOSE:
             print 'Subscribe to publish frequency: %s Hz' % (1/(time3-time0))
 
+=======
+        with self._lock: 
+            if self._VERBOSE:
+                rospy.logdebug('received image of type: "%s"' % type(ros_data))
+            # conversion to cv2
+            try:
+                self._image = self._bridge.imgmsg_to_cv2(ros_data, "bgr8")
+            except CvBridgeError:
+                rospy.logdebug('Could not convert image')
+                return
+>>>>>>> Lowered CPU usage
 
 # Class Lines: Detects points in an Image that aligns into a line. Outputs the image with detected points overlayed
 #              on it.
@@ -101,9 +156,18 @@ class Lines(object):
 
     def __init__(self):
         self._ddepth = cv2.CV_16S
-        self._kernel_size = KERNEL_SIZE
-        self.points_arrX = []
-        self.points_arrY = []
+        self._points_arrX = []
+        self._points_arrY = []
+        try:
+            self._KERNEL_SIZE = rospy.get_param("kernel_size")
+            self._RHO = rospy.get_param("rho")
+            self._THETA = rospy.get_param("theta")
+            self._THRESHOLD = rospy.get_param("threshold")
+            self._MINLINELENGTH = rospy.get_param("min_line_length")
+            self._MAXLINEGAP = rospy.get_param("max_line_gap")
+        except KeyError as e:
+            rospy.logerr("LineDetector: error in looking up param. {}".format(e))
+            raise
 
     def skeletize(self, img, size, skel):
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
@@ -124,8 +188,6 @@ class Lines(object):
         return skel
 
     def detect(self, cv_image):
-        self.points_arrX = []
-        self.points_arrY = []
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
         ret, thresh4 = cv2.threshold(blurred, 200, 255, cv2.THRESH_TOZERO)
@@ -134,18 +196,18 @@ class Lines(object):
 
         skeleton = self.skeletize(thresh4, size, skel)
 
-        dst = cv2.Laplacian(skeleton, self._ddepth, ksize=self._kernel_size)
+        dst = cv2.Laplacian(skeleton, self._ddepth, ksize=self._KERNEL_SIZE)
         abs_dst = cv2.convertScaleAbs(dst)
 
-        linesP = cv2.HoughLinesP(abs_dst, rho=RHO, theta=THETA, threshold=THRESHOLD,
-                                 lines=np.array([]), minLineLength=MINLINELENGTH, maxLineGap=MAXLINEGAP)
+        linesP = cv2.HoughLinesP(abs_dst, rho=self._RHO, theta=self._THETA, threshold=self._THRESHOLD,
+                                 lines=np.array([]), minLineLength=self._MINLINELENGTH, maxLineGap=self._MAXLINEGAP)
 
         if linesP is not None:
             for line in linesP:
                 for x1, y1, x2, y2 in line:
                     slope = (y2 - y1) / (x2 - x1)
-                    self.points_arrX.extend([x1, x2])
-                    self.points_arrY.extend([y1, y2])
+                    self._points_arrX.extend([x1, x2])
+                    self._points_arrY.extend([y1, y2])
                     # <-- Calculating the slope.
                     if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope
@@ -161,6 +223,7 @@ class Lines(object):
 
 
 def main(args):
+<<<<<<< HEAD
     # ROS Node Initialization
     # disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except
     # Exceptions may never be handled
@@ -195,6 +258,15 @@ def main(args):
 =======
 =======
 >>>>>>> lint
+=======
+    rospy.init_node('LinesNode')
+    node_ = PubSubNode()
+    rate = rospy.Rate(20)
+    try:
+        while not rospy.is_shutdown():
+            node_.run_detects()
+            rate.sleep()
+>>>>>>> Lowered CPU usage
     except KeyboardInterrupt:
         rospy.loginfo("shutting down ROS Lines detector Module")
 
