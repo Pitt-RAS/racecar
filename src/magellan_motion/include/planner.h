@@ -73,8 +73,8 @@ private:
     double _resolution;
     bool _has_map;
 
-    int floatPrecision; // make ros param
-    double floatPrecisionDivide; // make ros param
+    int floatPrecision; 
+    double floatPrecisionDivide;
     std::string transformFrame;
 };
 }

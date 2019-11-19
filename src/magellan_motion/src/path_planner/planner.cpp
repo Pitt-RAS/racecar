@@ -16,8 +16,8 @@ static const int NUMOFDIRS = 8;
 static const int dX[NUMOFDIRS] = {-1, -1, -1,  0,  0,  1, 1, 1};
 static const int dY[NUMOFDIRS] = {-1,  0,  1, -1,  1, -1, 0, 1};
 static const double costs[NUMOFDIRS] = {SQRT2,  1,  SQRT2, 1,  1, SQRT2, 1, SQRT2};
-static int floatPrecision; // make ros param
-static double floatPrecisionDivide; // make ros param
+static int floatPrecision;
+static double floatPrecisionDivide;
 static std::string transformFrame;
 
 using namespace MagellanPlanner;
@@ -34,8 +34,6 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
     nh.getParam("~float_precision", floatPrecision);
     nh.getParam("~float_precision_divide", floatPrecisionDivide);
     nh.getParam("~transform_frame", transformFrame);
-
-    std::cout << floatPrecision << " " << floatPrecisionDivide << " " << transformFrame << std::endl;
 
     _has_map = false;
 }
