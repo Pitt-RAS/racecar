@@ -102,41 +102,41 @@ int main(int argc, char** argv)
                 bool success = false;
 
                 geometry_msgs::PoseStamped goalPointTransformed;
-			    geometry_msgs::PoseStamped goalPoint;
+                geometry_msgs::PoseStamped goalPoint;
 
-			    magellan_motion::PlannerRequestResult result_;
+                magellan_motion::PlannerRequestResult result_;
 
                 try{
-			      auto transform = tfBuffer.lookupTransform("base_link",
-			      											goal_->header.frame_id,
-			      											ros::Time::now(),
-			      											ros::Duration(1.0));
-			     
-			      goalPoint.pose.position = goal_->goal;
+                    auto transform = tfBuffer.lookupTransform("base_link",
+                                                              goal_->header.frame_id,
+                                                              ros::Time::now(),
+                                                              ros::Duration(1.0));
 
-			      tf2::doTransform(goalPoint, goalPointTransformed, transform);
+                    goalPoint.pose.position = goal_->goal;
 
-			      success = true;
-			    } catch (tf2::TransformException &ex) {
-			    	ROS_ERROR("PathPlanner error in lookupTransform");
-			      	ROS_ERROR("%s",ex.what());
-			      	result_.success = false;
-			      	server.setSucceeded(result_);
-			    }
+                    tf2::doTransform(goalPoint, goalPointTransformed, transform);
 
-			    if (success) {
-					Path plan = planner.plan(goalPointTransformed.pose.position, tfBuffer);
+                    success = true;
+                } catch (tf2::TransformException& ex) {
+                    ROS_ERROR("PathPlanner error in lookupTransform");
+                    ROS_ERROR("%s",ex.what());
+                    result_.success = false;
+                    server.setSucceeded(result_);
+                }
 
-	                if ( plan.poses.size() >= 0 ) {
-	                    plan_pub.publish(plan);
-	                    result_.success = true;
-	                } else {
-	                    result_.success = false;
-	                }
+                if (success) {
+                    Path plan = planner.plan(goalPointTransformed.pose.position, tfBuffer);
 
-	                server.setSucceeded(result_);
-			    }
-                
+                    if ( plan.poses.size() >= 0 ) {
+                        plan_pub.publish(plan);
+                        result_.success = true;
+                    } else {
+                        result_.success = false;
+                    }
+
+                    server.setSucceeded(result_);
+                }
+
             }
         }
 

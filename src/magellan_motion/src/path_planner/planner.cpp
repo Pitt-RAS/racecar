@@ -16,9 +16,7 @@ static const int NUMOFDIRS = 8;
 static const int dX[NUMOFDIRS] = {-1, -1, -1,  0,  0,  1, 1, 1};
 static const int dY[NUMOFDIRS] = {-1,  0,  1, -1,  1, -1, 0, 1};
 static const double costs[NUMOFDIRS] = {SQRT2,  1,  SQRT2, 1,  1, SQRT2, 1, SQRT2};
-static int floatPrecision;
-static double floatPrecisionDivide;
-static std::string transformFrame;
+
 
 using namespace MagellanPlanner;
 
@@ -54,13 +52,13 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& 
     geometry_msgs::PoseStamped startPointTransformed;
 
     try{
-      auto transform = tfBuffer.lookupTransform(transformFrame,
-                                                "base_link",
-                                                ros::Time::now(),
-                                                ros::Duration(1.0));
-     
-      tf2::doTransform(startPoint, startPointTransformed, transform);
-    } catch (tf2::TransformException &ex) {
+        auto transform = tfBuffer.lookupTransform(transformFrame,
+                                                  "base_link",
+                                                  ros::Time::now(),
+                                                  ros::Duration(1.0));
+
+        tf2::doTransform(startPoint, startPointTransformed, transform);
+    } catch (tf2::TransformException& ex) {
         ROS_ERROR("PathPlanner getPlan: error in lookupTransform");
         ROS_ERROR("%s",ex.what());
         return p;
@@ -79,9 +77,11 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& 
 
     while (parent != nullptr) {
         PoseStamped pt;
-        pt.pose.position.x = static_cast<float>(parent->xPose) * floatPrecisionDivide + startPointTransformed.pose.position.x;
-        pt.pose.position.y = static_cast<float>(parent->yPose) * floatPrecisionDivide + startPointTransformed.pose.position.y;
-        pt.header.frame_id = transformFrame; // TODO fix to param frame
+        pt.pose.position.x = static_cast<float>(parent->xPose) * floatPrecisionDivide +
+                             startPointTransformed.pose.position.x;
+        pt.pose.position.y = static_cast<float>(parent->yPose) * floatPrecisionDivide +
+                             startPointTransformed.pose.position.y;
+        pt.header.frame_id = transformFrame;
         totalCost = totalCost + parent->gCost;
 
         planVector.push_back(pt);
@@ -110,7 +110,6 @@ Path PathPlanner::plan(Point goal, tf2_ros::Buffer& tfBuffer) {
     // casts the float value (precision to hundredth's place) to an int to be used by the planner
     // this is so that we can handle floating values better (ex 1.97 --> 197)
 
-    // TODO: transform goal into base_link frame
     goalX = static_cast<int>(goal.x * floatPrecision);
     goalY = static_cast<int>(goal.y * floatPrecision);
 

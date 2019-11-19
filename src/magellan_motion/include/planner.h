@@ -77,7 +77,7 @@ private:
     double _resolution;
     bool _has_map;
 
-    int floatPrecision; 
+    int floatPrecision;
     double floatPrecisionDivide;
     std::string transformFrame;
 };
