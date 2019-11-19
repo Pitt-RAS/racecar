@@ -44,11 +44,27 @@ int PathPlanner::getKey(int x, int y) {
     return ((x + y) * (x + y + 1) / 2 + y);
 }
 
-Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
+Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& tfBuffer) {
     Path p;
     p.header.frame_id = transformFrame;
     p.header.stamp = ros::Time::now();
     double totalCost = 0;
+
+    geometry_msgs::PoseStamped startPoint;
+    geometry_msgs::PoseStamped startPointTransformed;
+
+    try{
+      auto transform = tfBuffer.lookupTransform(transformFrame,
+                                                "base_link",
+                                                ros::Time::now(),
+                                                ros::Duration(1.0));
+     
+      tf2::doTransform(startPoint, startPointTransformed, transform);
+    } catch (tf2::TransformException &ex) {
+        ROS_ERROR("PathPlanner getPlan: error in lookupTransform");
+        ROS_ERROR("%s",ex.what());
+        return p;
+    }
 
     //lookup transform between rosparam frame & baselink
 
@@ -63,8 +79,8 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
 
     while (parent != nullptr) {
         PoseStamped pt;
-        pt.pose.position.x = static_cast<float>(parent->xPose) * floatPrecisionDivide;
-        pt.pose.position.y = static_cast<float>(parent->yPose) * floatPrecisionDivide;
+        pt.pose.position.x = static_cast<float>(parent->xPose) * floatPrecisionDivide + startPointTransformed.pose.position.x;
+        pt.pose.position.y = static_cast<float>(parent->yPose) * floatPrecisionDivide + startPointTransformed.pose.position.y;
         pt.header.frame_id = transformFrame; // TODO fix to param frame
         totalCost = totalCost + parent->gCost;
 
@@ -80,7 +96,7 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode) {
     return p;
 }
 
-Path PathPlanner::plan(Point goal) {
+Path PathPlanner::plan(Point goal, tf2_ros::Buffer& tfBuffer) {
     Path p;
     if (!_has_map) {
         ROS_ERROR("PathPlanner: Does not have map yet");
@@ -140,7 +156,7 @@ Path PathPlanner::plan(Point goal) {
                                 t_end - startTime).count()
                             << "ms");
 
-            Path result = getPlan(next);
+            Path result = getPlan(next, tfBuffer);
             return result;
         }
 

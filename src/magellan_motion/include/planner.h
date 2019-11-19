@@ -19,6 +19,10 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
 
+#include <tf2_ros/transform_listener.h>
+#include <tf2/utils.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 using geometry_msgs::Point;
 using geometry_msgs::PoseStamped;
 using nav_msgs::Path;
@@ -40,8 +44,8 @@ class PathPlanner {
 public:
     PathPlanner(ros::NodeHandle& nh, double resolution);
     int getKey(int x, int y);
-    Path getPlan(std::shared_ptr<Successor> goalNode);
-    Path plan(Point goal);
+    Path getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& tfBuffer);
+    Path plan(Point goal, tf2_ros::Buffer& tfBuffer);
 private:
     bool isFree(int x, int y);
     double getHeuristic(int x, int y);
