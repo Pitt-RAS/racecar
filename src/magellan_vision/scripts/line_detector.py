@@ -162,7 +162,7 @@ def main(args):
             node_.run_detects()
             rate.sleep()
 
-    except:
+    except KeyboardInterrupt:
         rospy.logfatal("shutting down ROS Lines detector Module")
 
 
