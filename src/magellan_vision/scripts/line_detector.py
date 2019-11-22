@@ -4,51 +4,28 @@ import sys
 import math
 import threading
 
-import rospy
 
 import cv2
 import numpy as np
 
-<<<<<<< HEAD
+
 # ROS imports
 import rospy
+import std_msgs.msg
 from sensor_msgs.msg import Image  # ROS Image Message
+from geometry_msgs.msg import Point
+from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
-# from magellan_core.msg import Int32XYArr  # ROS Float64Arr type msg
 
-# Global Constant
-<<<<<<< HEAD
-<<<<<<< HEAD
-VERBOSE = True
-=======
-VERBOSE = ropsy.get_param("VERBOSE")
-=======
-VERBOSE = rospy.get_param("VERBOSE")
-<<<<<<< HEAD
->>>>>>> lint
-DDEPTH = rospy.get_param("ddepth")
-=======
-# DDEPTH = rospy.get_param("ddepth")
->>>>>>> quickfix
-KERNEL_SIZE = rospy.get_param("kernel_size")
-RHO = rospy.get_param("rho")
-THETA = rospy.get_param("theta")
-THRESHOLD = rospy.get_param("threshold")
-MINLINELENGTH = rospy.get_param("min_line_length")
-MAXLINEGAP = rospy.get_param("max_line_gap")
-=======
-from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image
->>>>>>> Lowered CPU usage
+point_arr = PointArray()
 
->>>>>>> params added and implemented
 
 class PubSubNode(object):
     def __init__(self):
         # TODO FIX THIS
         try:
             # Global Constant
-            self._VERBOSE = rospy.get_param("VERBOSE")
+            self._VERBOSE = rospy.get_param("verbose")
         except KeyError as e:
             rospy.logerr("LineDetector: error in looking up param. {}".format(e))
             raise
@@ -59,23 +36,20 @@ class PubSubNode(object):
         self._lines_object = Lines()
         # topic where we publish
         self._image_pub = rospy.Publisher("/perception/color/image_processed", Image, queue_size=5)
-        # self._point_arr_pub = rospy.Publisher('/perception/detected_points', Int32XYArr, queue_size=5)
+        self._point_arr_pub = rospy.Publisher('/perception/detected_points', PointArray, queue_size=5)
         self._bridge = CvBridge()
 
         # subscribed Topic
         self._subscriber = rospy.Subscriber("/camera/color/image_raw", Image, self._callback, queue_size=1)
-<<<<<<< HEAD
-        if VERBOSE:
-            print "subscribed to /camera/color/image_raw"
-=======
         self._image = None
-
-        if self._VERBOSE:
-            rospy.logdebug("subscribed to /camera/color/image_raw")
->>>>>>> Lowered CPU usage
 
     def run_detects(self):
         with self._lock:
+            header = std_msgs.msg.Header()
+            header.stamp = rospy.Time.now()
+            point_arr.clear()
+            point_arr.header = header
+            point_arr.points = []
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
@@ -84,85 +58,32 @@ class PubSubNode(object):
                 try:
                     ros_msg = self._bridge.cv2_to_imgmsg(image_np)
                 except CvBridgeError:
-                    rospy.logdebug('Could not convert image')
+                    rospy.logerr('Could not convert image')
                     return
 
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)
-                # self._point_arr_pub.publish(intXYMsg)
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
 
     def _callback(self, ros_data):
-<<<<<<< HEAD
-<<<<<<< HEAD
-        '''Callback function of subscribed topic.
-        Here images get converted and features detected and published'''
-        if VERBOSE:
-            print 'received image of type: "%s"' % type(ros_data)
-        time0 = time.time()
-        # conversion to cv2
-        try:
-            image_np = self._bridge.imgmsg_to_cv2(ros_data, "bgr8")
-        except CvBridgeError:
-            rospy.logdebug('Could not convert image')
-            return
-
-        # Line detection
-        time1 = time.time()
-
-        # TODO: image_np is inherently changed in the Lines() class. Might be useful for it to have its own layer
-        image_np = self._lines_object.detect(image_np)
-        time2 = time.time()
-
-        if VERBOSE:
-            print 'Detection processed at %s Hz.' % (1/(time2-time1))
-
-        # conversion back to Image
-        try:
-            ros_msg = self._bridge.cv2_to_imgmsg(image_np)
-        except CvBridgeError:
-            return
-
-        # Put array points into the Int32XYArr[] msg
-        # intXYMsg = Int32XYArr()
-        # intXYMsg.pixelX = self._lines_object.points_arrX
-        # intXYMsg.pixelY = self._lines_object.points_arrY
-
-        # Publish Processed Image amnd Points
-        self._image_pub.publish(ros_msg)
-        # self._point_arr_pub.publish(intXYMsg)
-
-        time3 = time.time()
-        if VERBOSE:
-            print 'Subscribe to publish frequency: %s Hz' % (1/(time3-time0))
-
-=======
-        with self._lock: 
-=======
         with self._lock:
->>>>>>> Lint 2x
-            if self._VERBOSE:
-                rospy.logdebug('received image of type: "%s"' % type(ros_data))
-            # conversion to cv2
             try:
                 self._image = self._bridge.imgmsg_to_cv2(ros_data, "bgr8")
             except CvBridgeError:
-                rospy.logdebug('Could not convert image')
+                rospy.logerr('Could not convert image')
                 return
->>>>>>> Lowered CPU usage
 
-# Class Lines: Detects points in an Image that aligns into a line. Outputs the image with detected points overlayed
-#              on it.
+
+''' Class Lines: Detects points in an Image that aligns into a line.
+    Outputs the image with detected points overlayed on it.'''
 
 
 class Lines(object):
 
     def __init__(self):
         self._ddepth = cv2.CV_16S
-        self._points_arrX = []
-        self._points_arrY = []
         try:
             self._KERNEL_SIZE = rospy.get_param("kernel_size")
             self._RHO = rospy.get_param("rho")
@@ -176,12 +97,7 @@ class Lines(object):
 
     def skeletize(self, img, size, skel):
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
-        done = False
-<<<<<<< HEAD
-        while(not done):
-=======
-        while(not rospy.is_shutdown() and not done):
->>>>>>> linter
+        while not rospy.is_shutdown():
             eroded = cv2.erode(img, element)
             temp = cv2.dilate(eroded, element)
             temp = cv2.subtract(img, temp)
@@ -189,7 +105,8 @@ class Lines(object):
             img = eroded.copy()
             zeros = size - cv2.countNonZero(img)
             if zeros == size:
-                done = True
+                break
+
         return skel
 
     def detect(self, cv_image):
@@ -211,8 +128,16 @@ class Lines(object):
             for line in linesP:
                 for x1, y1, x2, y2 in line:
                     slope = (y2 - y1) / (x2 - x1)
-                    self._points_arrX.extend([x1, x2])
-                    self._points_arrY.extend([y1, y2])
+                    p1 = Point()
+                    p2 = Point()
+                    p1.x = x1
+                    p1.y = y1
+                    p1.z = 0
+                    point_arr.extend(p1)
+                    p2.x = x2
+                    p2.y = y2
+                    p2.z = 0
+                    point_arr.extend(p2)
                     # <-- Calculating the slope.
                     if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope
@@ -228,54 +153,18 @@ class Lines(object):
 
 
 def main(args):
-<<<<<<< HEAD
-    # ROS Node Initialization
-    # disable_signals flag allows catching signals(Excecptions) such as the KeyboardInterrupt, otherwise try/except
-    # Exceptions may never be handled
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    rospy.init_node('LinesNode', anonymous=False)
-=======
-    rospy.init_node('LinesNode')
->>>>>>> params added and implemented
-    PubSubNode()
-    try:
-        rospy.spin()
-<<<<<<< HEAD
-    except:
-        rospy.loginfo("shutting down ROS Lines detector Module")
->>>>>>> Fixed
-    rospy.init_node('LinesNode')
-    PubSubNode()
-    try:
-        rospy.spin()
-<<<<<<< HEAD
-<<<<<<< HEAD
-    except KeyboardInterrupt:
-        print "shutting down ROS Lines detector Module"
-
-=======
-    except:
-       rospy.loginfo("shutting down ROS Lines detector Module")
->>>>>>> Fixed
-=======
-=======
->>>>>>> lint
-=======
     rospy.init_node('LinesNode')
     node_ = PubSubNode()
-    rate = rospy.Rate(20)
+    r = rospy.get_param("rate")
+    rate = rospy.Rate(r)
     try:
         while not rospy.is_shutdown():
             node_.run_detects()
             rate.sleep()
->>>>>>> Lowered CPU usage
-    except KeyboardInterrupt:
-        rospy.loginfo("shutting down ROS Lines detector Module")
 
->>>>>>> linter
+    except KeyboardInterrupt:
+        rospy.logfatal("shutting down ROS Lines detector Module")
+
 
 if __name__ == '__main__':
     main(sys.argv)
