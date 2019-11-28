@@ -29,17 +29,29 @@ PathPlanner::PathPlanner(ros::NodeHandle& nh, double resolution)
           open_(comp_),
           map_sub(nh.subscribe("/grid", 10, &PathPlanner::mapCallback, this))
 {
-    nh.getParam("~float_precision", floatPrecision);
-    nh.getParam("~float_precision_divide", floatPrecisionDivide);
-    nh.getParam("~transform_frame", transformFrame);
+    if (!nh.getParam("float_precision", floatPrecision)) {
+        throw std::runtime_error("Path Planner: missing parameter floatPrecision");
+    }
+
+    if (!nh.getParam("float_precision_divide", floatPrecisionDivide)) {
+        throw std::runtime_error("Path Planner: missing parameter floatPrecisionDivide");
+    }
+
+    if (!nh.getParam("transform_frame", transformFrame)) {
+        throw std::runtime_error("Path Planner: missing parameter transformFrame");
+    }
 
     _has_map = false;
 }
 
 int PathPlanner::getKey(int x, int y) {
     // gets a unique number for any 2 integers
-    // first convert to cell coordinates
-    return ((x + y) * (x + y + 1) / 2 + y);
+    // adding 500 since we want these to be positives
+    // TODO: in future, add map width from incoming messages as class member
+    int xFinal = x + 500;
+    int yFinal = y + 500;
+
+    return ((xFinal + yFinal) * (xFinal + yFinal + 1) / 2 + yFinal);
 }
 
 Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& tfBuffer) {
@@ -51,6 +63,7 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& 
     geometry_msgs::PoseStamped startPoint;
     geometry_msgs::PoseStamped startPointTransformed;
 
+    // lookup transform between rosparam frame & baselink
     try{
         auto transform = tfBuffer.lookupTransform(transformFrame,
                                                   "base_link",
@@ -63,8 +76,6 @@ Path PathPlanner::getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& 
         ROS_ERROR("%s",ex.what());
         return p;
     }
-
-    //lookup transform between rosparam frame & baselink
 
     std::vector<PoseStamped> planVector;
 
@@ -132,7 +143,6 @@ Path PathPlanner::plan(Point goal, tf2_ros::Buffer& tfBuffer) {
     nodes.insert({start->key, start});
 
     int numExpand = 0;
-
     int numSucc = 0;
     int numErased = 0;
     int numInsert = 0;
@@ -165,25 +175,24 @@ Path PathPlanner::plan(Point goal, tf2_ros::Buffer& tfBuffer) {
             int newx = next->xPose + dX[dir];
             int newy = next->yPose + dY[dir];
 
-            int key = getKey(newx, newy);
-            double cc = costs[dir] + next->gCost;
+            if (isFree(newx,newy)) {
+                // if free and inside map
+                int key = getKey(newx, newy);
+                double cc = costs[dir] + next->gCost;
 
-            bool alreadyOpen = (nodes.count(key) != 0);
-            bool goodAdd = false;
+                bool alreadyOpen = (nodes.count(key) != 0);
+                bool goodAdd = false;
 
-            if (alreadyOpen) {
-                if (!nodes[key]->closed) {
-                    double oldCost = nodes[key]->gCost;
-                    goodAdd = (cc < oldCost);
+                if (alreadyOpen) {
+                    if (!nodes[key]->closed) {
+                        double oldCost = nodes[key]->gCost;
+                        goodAdd = (cc < oldCost);
+                    }
+                } else {
+                    goodAdd = true;
                 }
-            } else {
-                goodAdd = true;
-            }
 
-            if (goodAdd) {
-                // if inside map
-                if (isFree(newx,newy)) {
-                    // if free
+                if (goodAdd) {
                     std::shared_ptr<Successor> newNode = std::make_shared<Successor>();
                     newNode->gCost = cc;
                     newNode->hCost = getHeuristic(newx, newy);
@@ -209,36 +218,35 @@ Path PathPlanner::plan(Point goal, tf2_ros::Buffer& tfBuffer) {
     }
 
     ROS_ERROR_STREAM("PathPlanner: NO PATH FOUND!! NODES EXPANDED: " << numExpand);
-    ROS_ERROR_STREAM(
-        "PathPlanner: NUM SUCC: " << numSucc << " NUM ERASED: " << numErased << " NUM INSERT: " << numInsert);
+    ROS_ERROR_STREAM("PathPlanner: NUM SUCC: " << numSucc << " ERASED: " << numErased << " INSERT: " << numInsert);
+    ROS_ERROR_STREAM("PathPlanner: GOALX: " << goalX << " GOALY: " << goalY);
 
     return p;
 }
 
 bool PathPlanner::isFree(int x, int y) {
-    int mapWidth = _map.info.width;
-    double mapResolution = std::roundf(_map.info.resolution * 100.0) / 100.0;
+    int mapWidth = static_cast<int>(_map.info.width);
 
-    // origin isnt needed because the origin should be center
-    // of the robot and x, y should be from robot center
-    // the future we should be more general in our frames
+    int xMap = x + mapWidth / 2;
+    int yMap = y + mapWidth / 2;
 
-    if (_resolution != mapResolution) {
-        ROS_WARN_THROTTLE(1, "Path Planner: resolution from msg does not match what was expected");
-    }
-
-    if (x < 0 || y < 0) {
-        ROS_ERROR_STREAM("Path Planner: X: " << x << " and Y: " << y << " cell in isFree is negative");
+    if (xMap > mapWidth || yMap > mapWidth) {
+        ROS_DEBUG_STREAM("PathPlanner: X or Y cells are outside map. X = " << x << " Y = " << y);
         return false;
     }
 
-    if (x > mapWidth || y > mapWidth) {
-        ROS_ERROR_STREAM("PathPlanner: X or Y cells are outside map. X = " << x << " Y = " << y);
+    if (xMap < 0 || yMap < 0) {
+        ROS_DEBUG_STREAM("Path Planner: X: " << x << " and Y: " << y << " cell in isFree is negative");
         return false;
     }
 
     // convert to row major order
-    int index = y * mapWidth + x;
+    int index = yMap * mapWidth + xMap;
+
+    if (index < 0) {
+        ROS_ERROR_STREAM("Path Planner: Index: " << index << " in isFree is negative");
+        return false;
+    }
 
     return (_map.data[index] != 100);
 }
@@ -253,7 +261,7 @@ double PathPlanner::getHeuristic(int x, int y) {
 }
 
 bool PathPlanner::isGoal(int x, int y) {
-    return (x == goalX) && (y == goalY);
+    return (x == goalX && y == goalY);
 }
 
 void PathPlanner::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {

@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
     // construct planner
     double resolution = .01; // 10cm
-    MagellanPlanner::PathPlanner planner(nh, resolution);
+    MagellanPlanner::PathPlanner planner(private_nh, resolution);
 
     // Cache the time
     ros::Time last_time = ros::Time::now();
