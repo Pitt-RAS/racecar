@@ -17,7 +17,7 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
 
-point_arr = PointArray()
+# point_arr = PointArray()
 
 
 class PubSubNode(object):
@@ -45,11 +45,11 @@ class PubSubNode(object):
 
     def run_detects(self):
         with self._lock:
-            header = std_msgs.msg.Header()
-            header.stamp = rospy.Time.now()
-            point_arr.clear()
-            point_arr.header = header
-            point_arr.points = []
+            # header = std_msgs.msg.Header()
+            # header.stamp = rospy.Time.now()
+            # point_arr.clear()
+            # point_arr.header = header
+            # point_arr.points = []
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
