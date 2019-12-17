@@ -17,7 +17,7 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
 
-# point_arr = PointArray()
+point_arr = PointArray()
 
 
 class PubSubNode(object):
@@ -45,11 +45,11 @@ class PubSubNode(object):
 
     def run_detects(self):
         with self._lock:
-            # header = std_msgs.msg.Header()
-            # header.stamp = rospy.Time.now()
-            # point_arr.clear()
-            # point_arr.header = header
-            # point_arr.points = []
+            header = std_msgs.msg.Header()
+            header.stamp = rospy.Time.now()
+            point_arr.header = header
+            point_arr.points = []
+            
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
@@ -63,6 +63,7 @@ class PubSubNode(object):
 
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)
+                self._point_arr_pub.publish(point_arr)
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
@@ -133,11 +134,11 @@ class Lines(object):
                     p1.x = x1
                     p1.y = y1
                     p1.z = 0
-                    point_arr.extend(p1)
+                    point_arr.points.extend(p1)
                     p2.x = x2
                     p2.y = y2
                     p2.z = 0
-                    point_arr.extend(p2)
+                    point_arr.points.extend(p2)
                     # <-- Calculating the slope.
                     if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope
