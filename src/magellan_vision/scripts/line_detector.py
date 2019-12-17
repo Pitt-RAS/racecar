@@ -17,7 +17,7 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
 
-point_arr = PointArray()
+global point_arr = PointArray()
 
 
 class PubSubNode(object):
