@@ -15,6 +15,7 @@ sensor_msgs
 rospy
 std_msgs
 roslib
+magellan_core
 )
 
 find_package(OpenCV)
@@ -57,7 +58,7 @@ find_package(OpenCV)
 #   FILES
 #   Message1.msg
 #   Message2.msg
-# )
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(

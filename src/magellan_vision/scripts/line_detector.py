@@ -17,7 +17,8 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
 
-global point_arr = PointArray()
+
+
 
 
 class PubSubNode(object):
@@ -47,8 +48,8 @@ class PubSubNode(object):
         with self._lock:
             header = std_msgs.msg.Header()
             header.stamp = rospy.Time.now()
+            header.frame_id = "camera_link"
             point_arr.header = header
-            point_arr.points = []
             
             # Line detection
             if self._image is not None:
@@ -134,11 +135,11 @@ class Lines(object):
                     p1.x = x1
                     p1.y = y1
                     p1.z = 0
-                    point_arr.points.extend(p1)
+                    point_arr.points.append(p1)
                     p2.x = x2
                     p2.y = y2
                     p2.z = 0
-                    point_arr.points.extend(p2)
+                    point_arr.points.append(p2)
                     # <-- Calculating the slope.
                     if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope
@@ -158,6 +159,8 @@ def main(args):
     node_ = PubSubNode()
     r = rospy.get_param("rate")
     rate = rospy.Rate(r)
+    global point_arr
+    point_arr = PointArray()
     try:
         while not rospy.is_shutdown():
             node_.run_detects()
