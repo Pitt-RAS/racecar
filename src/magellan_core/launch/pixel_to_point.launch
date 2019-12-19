@@ -1,4 +1,6 @@
 <launch>
-	<node pkg="magellan_vision" type="pixel_to_point.py" name="pixel_to_point_node/>
-	<param name="rate" type="int" value="20"/>
+    <node pkg="magellan_vision" type="pixel_to_point.py" name="pixel_to_point_node" >
+        <param name="rate" type="int" value="20" />
+        <param name="slop" type="double" value="0.1" />
+    </node>
 </launch>
