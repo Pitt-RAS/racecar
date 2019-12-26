@@ -23,7 +23,6 @@ from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and R
 
 class PubSubNode(object):
     def __init__(self):
-        # TODO FIX THIS
         try:
             # Global Constant
             self._VERBOSE = rospy.get_param("verbose")
@@ -65,6 +64,7 @@ class PubSubNode(object):
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)
                 self._point_arr_pub.publish(point_arr)
+
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
@@ -127,8 +127,11 @@ class Lines(object):
                                  lines=np.array([]), minLineLength=self._MINLINELENGTH, maxLineGap=self._MAXLINEGAP)
 
         if linesP is not None:
+            point_arr.points = []
             for line in linesP:
                 for x1, y1, x2, y2 in line:
+                    if(x1>640 or x2>640 or y1>480 or y2>480 or x1<0 or x2<0 or y1<0 or y2<0):
+                        continue
                     slope = (y2 - y1) / (x2 - x1)
                     p1 = Point()
                     p2 = Point()

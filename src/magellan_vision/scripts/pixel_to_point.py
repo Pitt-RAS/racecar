@@ -41,7 +41,7 @@ class PubSubNode(object):
         if self._depth_image is not None:
             self._depth_array = np.array(self._depth_image, dtype=np.float32)
             for point in point_arr.points:
-                if(int(point.x)>640 or int(point.y)>480):
+                if(int(point.x)>640 or int(point.y)>480 or int(point.x)<0 or int(point.y)<0):
                     continue
                 depth = self._depth_array[int(point.y)][int(point.x)]
                 Px = (point.x-cx)*(depth)/fx
