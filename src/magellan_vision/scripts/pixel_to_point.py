@@ -58,7 +58,7 @@ def main():
     rospy.init_node("pixel_to_point_node")
     global point_arr
     point_arr = PointArray()
-
+    PubSubNode()
     while not rospy.is_shutdown():
         rospy.spin()
 
