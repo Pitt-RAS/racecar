@@ -3,23 +3,14 @@
 import sys
 import math
 import threading
-
-
 import cv2
 import numpy as np
-
-
-# ROS imports
 import rospy
 import std_msgs.msg
 from sensor_msgs.msg import Image  # ROS Image Message
 from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
-
-
-
-
 
 class PubSubNode(object):
     def __init__(self):
@@ -53,14 +44,12 @@ class PubSubNode(object):
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
-
                 # conversion back to Image
                 try:
                     ros_msg = self._bridge.cv2_to_imgmsg(image_np)
                 except CvBridgeError:
                     rospy.logerr('Could not convert image')
                     return
-
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)
                 self._point_arr_pub.publish(point_arr)
@@ -68,7 +57,6 @@ class PubSubNode(object):
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
-
     def _callback(self, ros_data):
         with self._lock:
             try:
@@ -77,11 +65,8 @@ class PubSubNode(object):
                 rospy.logerr('Could not convert image')
                 return
 
-
 ''' Class Lines: Detects points in an Image that aligns into a line.
     Outputs the image with detected points overlayed on it.'''
-
-
 class Lines(object):
 
     def __init__(self):
@@ -130,31 +115,30 @@ class Lines(object):
             point_arr.points = []
             for line in linesP:
                 for x1, y1, x2, y2 in line:
-                    if(x1>640 or x2>640 or y1>480 or y2>480 or x1<0 or x2<0 or y1<0 or y2<0):
-                        continue
-                    slope = (y2 - y1) / (x2 - x1)
-                    p1 = Point()
-                    p2 = Point()
-                    p1.x = x1
-                    p1.y = y1
-                    p1.z = 0
-                    point_arr.points.append(p1)
-                    p2.x = x2
-                    p2.y = y2
-                    p2.z = 0
-                    point_arr.points.append(p2)
+                    if(0 < x1 < 640 and 0 < x2 < 640 and 0 < y1 < 480 and 0 < y2 < 480):
+                        slope = (y2 - y1) / (x2 - x1)
+                        p1 = Point()
+                        p2 = Point()
+                        p1.x = x1
+                        p1.y = y1
+                        p1.z = 0
+                        point_arr.points.append(p1)
+                        p2.x = x2
+                        p2.y = y2
+                        p2.z = 0
+                        point_arr.points.append(p2)
                     # <-- Calculating the slope.
-                    if math.fabs(slope) < .5:
+                        if math.fabs(slope) < .5:
                         # <-- Only consider extreme slope
-                        continue
-                    if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
+                            continue
+                        if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
                         # <-- If the slope is negative, left group
-                        cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
-                        cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
-                    else:  # <-- Otherwise, right group.
-                        cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
-                        cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
-        return cv_image
+                            cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
+                            cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
+                        else:  # <-- Otherwise, right group.
+                            cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
+                            cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
+            return cv_image
 
 
 def main(args):
