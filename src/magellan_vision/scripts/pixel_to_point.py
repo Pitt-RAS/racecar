@@ -9,7 +9,7 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError
 
-    
+
 class PubSubNode(object):
     def __init__(self):
         self._point_arr_sub = message_filters.Subscriber("/perception/detected_points", PointArray)
@@ -52,8 +52,8 @@ class PubSubNode(object):
                 p1.z = 0
                 point_arr.points.append(p1)
             self._point_arr_pub.publish(point_arr)
-         
-            
+
+
 def main():
     rospy.init_node("pixel_to_point_node")
     global point_arr
@@ -61,6 +61,7 @@ def main():
 
     while not rospy.is_shutdown():
         rospy.spin()
+
 
 if __name__ == '__main__':
     main()
