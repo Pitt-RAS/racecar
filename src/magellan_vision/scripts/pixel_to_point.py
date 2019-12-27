@@ -9,14 +9,14 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError
 
-
+    
 class PubSubNode(object):
     def __init__(self):
         self._point_arr_sub = message_filters.Subscriber("/perception/detected_points", PointArray)
         self._camera_info_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/camera_info", CameraInfo)
         self._camera_depth_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
-        self._ts = message_filters.ApproximateTimeSynchronizer(\
-        	[self._point_arr_sub, self._camera_depth_sub, self._camera_info_sub], 10, 0.1)
+        self._ts = message_filters.ApproximateTimeSynchronizer(
+            [self._point_arr_sub, self._camera_depth_sub, self._camera_info_sub], 10, 0.1)
         self._ts.registerCallback(self.callback)
         self._point_arr_pub = rospy.Publisher("/perception/world_coord_points", PointArray, queue_size=5)
         self._bridge = CvBridge()
@@ -52,6 +52,7 @@ class PubSubNode(object):
                 p1.z = 0
                 point_arr.points.append(p1)
             self._point_arr_pub.publish(point_arr)
+         
             
 def main():
     rospy.init_node("pixel_to_point_node")

@@ -12,6 +12,7 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
 
+
 class PubSubNode(object):
     def __init__(self):
         try:
@@ -40,7 +41,6 @@ class PubSubNode(object):
             header.stamp = rospy.Time.now()
             header.frame_id = "camera_link"
             point_arr.header = header
-            
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
@@ -54,7 +54,6 @@ class PubSubNode(object):
                 self._image_pub.publish(ros_msg)
                 self._point_arr_pub.publish(point_arr)
 
-
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
     def _callback(self, ros_data):
@@ -65,8 +64,11 @@ class PubSubNode(object):
                 rospy.logerr('Could not convert image')
                 return
 
+
 ''' Class Lines: Detects points in an Image that aligns into a line.
     Outputs the image with detected points overlayed on it.'''
+
+
 class Lines(object):
 
     def __init__(self):
@@ -127,15 +129,13 @@ class Lines(object):
                         p2.y = y2
                         p2.z = 0
                         point_arr.points.append(p2)
-                    # <-- Calculating the slope.
                         if math.fabs(slope) < .5:
-                        # <-- Only consider extreme slope
                             continue
                         if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
-                        # <-- If the slope is negative, left group
+
                             cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
-                        else:  # <-- Otherwise, right group.
+                        else:
                             cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
             return cv_image
