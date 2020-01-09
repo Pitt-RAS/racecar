@@ -46,7 +46,8 @@ class PubSubNode(object):
                 # TODO: Fix this rudimentary invalid pixel value checking
                 if(int(pixel.x) > 640 or int(pixel.y) > 480 or int(pixel.x) < 0 or int(pixel.y) < 0):
                     continue
-                # TODO: Instead of getting depth at a single point, get the mean (or median) of points in a BxB window around the point (Maybe make window size a ros param)
+                # TODO: Instead of getting depth at a single point, get the mean (or median) 
+                # of points in a BxB window around the point (Maybe make window size a ros param)
                 depth = self._depth_array[int(pixel.y)][int(pixel.x)]
                 Px = (pixel.x-cx)*(depth)/fx
                 Py = (pixel.y-cy)*(depth)/fy
@@ -55,7 +56,7 @@ class PubSubNode(object):
                 p1.y = Py
                 p1.z = 0
                 point_arr.points.append(p1)
-            
+
             self._point_arr_pub.publish(point_arr)
 
 

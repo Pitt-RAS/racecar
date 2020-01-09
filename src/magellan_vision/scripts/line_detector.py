@@ -58,7 +58,6 @@ class PubSubNode(object):
                 self._point_arr_pub.publish(point_arr)
                 self._spline_point_arr_pub.publish(spline_point_arr)
 
-
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
     def _callback(self, ros_data):
@@ -172,16 +171,16 @@ class Lines(object):
                         if math.fabs(slope) < .5:
                             continue
                         if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
-                            left_points.append([x1,y1])
-                            left_points.append([x2,y2])
+                            left_points.append([x1, y1])
+                            left_points.append([x2, y2])
                             cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
                         else:
-                            right_points.append([x1,y1])
-                            right_points.append([x2,y2])
+                            right_points.append([x1, y1])
+                            right_points.append([x2, y2])
                             cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
-            
+
             self.interpolate_spline(right_points, cv_image)
             self.interpolate_spline(left_points, cv_image)
             return cv_image
