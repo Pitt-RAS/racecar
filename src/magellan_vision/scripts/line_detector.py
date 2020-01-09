@@ -29,6 +29,7 @@ class PubSubNode(object):
         # topic where we publish
         self._image_pub = rospy.Publisher("/perception/color/image_processed", Image, queue_size=5)
         self._point_arr_pub = rospy.Publisher('/perception/detected_points', PointArray, queue_size=5)
+        self._spline_point_arr_pub = rospy.Publisher("/perception/spline_points", PointArray, queue_size=5)
         self._bridge = CvBridge()
 
         # subscribed Topic
@@ -41,18 +42,22 @@ class PubSubNode(object):
             header.stamp = rospy.Time.now()
             header.frame_id = "camera_link"
             point_arr.header = header
+            spline_point_arr.header = header
+
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
                 # conversion back to Image
                 try:
                     ros_msg = self._bridge.cv2_to_imgmsg(image_np)
-                except CvBridgeError:
-                    rospy.logerr('Could not convert image')
+                except (CvBridgeError, TypeError) as e:
+                    rospy.logerr('Could not convert image. Error: {}'.format(e))
                     return
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)
                 self._point_arr_pub.publish(point_arr)
+                self._spline_point_arr_pub.publish(spline_point_arr)
+
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
@@ -98,6 +103,39 @@ class Lines(object):
 
         return skel
 
+    def interpolate_spline(self, points, image):
+        x_list = []
+        y_list = []
+        spline_points = []
+        spline_point_arr.points = []
+
+        for point in points:
+            x_list.append(point[0])
+            y_list.append(point[1])
+
+        if len(x_list) == 0:
+            return
+
+        X = np.asarray(x_list)
+        Y = np.asarray(y_list)
+        denom = X.dot(X) - X.mean() * X.sum()
+        m = (X.dot(Y) - Y.mean() * X.sum()) / denom
+        b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denom
+        predicted_y = m * X + b
+        predicted_line = np.array([X, predicted_y]).T
+        cv2.drawContours(image, [predicted_line.astype(int)], 0, (255, 0, 0), 4)
+
+        alpha = np.linspace(0, len(predicted_line)-1, 10)
+        for value in alpha:
+            spline_points.append(predicted_line[int(value)])
+        for point in spline_points:
+            p1 = Point()
+            p1.x = point[0]
+            p1.y = point[1]
+            p1.z = 0
+            spline_point_arr.points.append(p1)
+            cv2.circle(image, (int(point[0]), int(point[1])), (10), (255, 0, 0), 8)
+
     def detect(self, cv_image):
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
@@ -115,6 +153,8 @@ class Lines(object):
 
         if linesP is not None:
             point_arr.points = []
+            right_points = []
+            left_points = []
             for line in linesP:
                 for x1, y1, x2, y2 in line:
                     if(0 < x1 < 640 and 0 < x2 < 640 and 0 < y1 < 480 and 0 < y2 < 480):
@@ -132,12 +172,18 @@ class Lines(object):
                         if math.fabs(slope) < .5:
                             continue
                         if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
-
+                            left_points.append([x1,y1])
+                            left_points.append([x2,y2])
                             cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
                         else:
+                            right_points.append([x1,y1])
+                            right_points.append([x2,y2])
                             cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
+            
+            self.interpolate_spline(right_points, cv_image)
+            self.interpolate_spline(left_points, cv_image)
             return cv_image
 
 
@@ -148,6 +194,8 @@ def main(args):
     rate = rospy.Rate(r)
     global point_arr
     point_arr = PointArray()
+    global spline_point_arr
+    spline_point_arr = PointArray()
     try:
         while not rospy.is_shutdown():
             node_.run_detects()

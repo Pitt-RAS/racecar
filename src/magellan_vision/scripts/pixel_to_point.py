@@ -12,7 +12,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class PubSubNode(object):
     def __init__(self):
-        self._point_arr_sub = message_filters.Subscriber("/perception/detected_points", PointArray)
+        self._point_arr_sub = message_filters.Subscriber("/perception/spline_points", PointArray)
         self._camera_info_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/camera_info", CameraInfo)
         self._camera_depth_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         self._ts = message_filters.ApproximateTimeSynchronizer(
@@ -23,7 +23,7 @@ class PubSubNode(object):
         self._depth_image = None
         self._depth_array = None
 
-    def callback(self, point_arr, camera_depth, camera_info):
+    def callback(self, spline_pixels, camera_depth, camera_info):
         cx = camera_info.P[2]
         cy = camera_info.P[6]
         fx = camera_info.P[0]
@@ -35,22 +35,27 @@ class PubSubNode(object):
         try:
             self._depth_image = self._bridge.imgmsg_to_cv2(camera_depth)
 
-        except CvBridgeError as e:
+        except (CvBridgeError, TypeError) as e:
             rospy.logerr("Could not convert image. Error {}".format(e))
+            return
 
         if self._depth_image is not None:
+            point_arr.points = []
             self._depth_array = np.array(self._depth_image, dtype=np.float32)
-            for point in point_arr.points:
-                if(int(point.x) > 640 or int(point.y) > 480 or int(point.x) < 0 or int(point.y) < 0):
+            for pixel in spline_pixels:
+                # TODO: Fix this rudimentary invalid pixel value checking
+                if(int(pixel.x) > 640 or int(pixel.y) > 480 or int(pixel.x) < 0 or int(pixel.y) < 0):
                     continue
-                depth = self._depth_array[int(point.y)][int(point.x)]
-                Px = (point.x-cx)*(depth)/fx
-                Py = (point.y-cy)*(depth)/fy
+                # TODO: Instead of getting depth at a single point, get the mean (or median) of points in a BxB window around the point (Maybe make window size a ros param)
+                depth = self._depth_array[int(pixel.y)][int(pixel.x)]
+                Px = (pixel.x-cx)*(depth)/fx
+                Py = (pixel.y-cy)*(depth)/fy
                 p1 = Point()
                 p1.x = Px
                 p1.y = Py
                 p1.z = 0
                 point_arr.points.append(p1)
+            
             self._point_arr_pub.publish(point_arr)
 
 
@@ -58,7 +63,7 @@ def main():
     rospy.init_node("pixel_to_point_node")
     global point_arr
     point_arr = PointArray()
-
+    PubSubNode()
     while not rospy.is_shutdown():
         rospy.spin()
 
