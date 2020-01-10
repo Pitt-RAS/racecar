@@ -51,7 +51,7 @@ class PubSubNode(object):
                 try:
                     ros_msg = self._bridge.cv2_to_imgmsg(image_np)
                 except (CvBridgeError, TypeError) as e:
-                    rospy.logerr('Could not convert image. Error: {}'.format(e))
+                    rospy.logwarn('Could not convert image. Error: {}'.format(e))
                     return
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)

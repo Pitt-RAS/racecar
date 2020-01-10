@@ -36,7 +36,7 @@ class PubSubNode(object):
             self._depth_image = self._bridge.imgmsg_to_cv2(camera_depth)
 
         except (CvBridgeError, TypeError) as e:
-            rospy.logerr("Could not convert image. Error {}".format(e))
+            rospy.logwarn("Could not convert image. Error {}".format(e))
             return
 
         if self._depth_image is not None:
