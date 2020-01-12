@@ -49,9 +49,9 @@ class PubSubNode(object):
                 image_np = self._lines_object.detect(self._image)
                 # conversion back to Image
                 try:
-                    ros_msg = self._bridge.cv2_to_imgmsg(image_np)
+                    ros_msg = self._bridge.cv2_to_imgmsg(image_np, encoding="bgr8")
                 except (CvBridgeError, TypeError) as e:
-                    rospy.logwarn('Could not convert image. Error: {}'.format(e))
+                    rospy.logwarn('Could not convert image from cv2 to imgmsg. Error: {}'.format(e))
                     return
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)
@@ -64,8 +64,8 @@ class PubSubNode(object):
         with self._lock:
             try:
                 self._image = self._bridge.imgmsg_to_cv2(ros_data, "bgr8")
-            except CvBridgeError:
-                rospy.logerr('Could not convert image')
+            except (CvBridgeError, TypeError) as e:
+                rospy.logerr('Could not convert image from imgmsg to cv2. Error: {}'.format(e))
                 return
 
 
@@ -102,41 +102,70 @@ class Lines(object):
 
         return skel
 
-    def interpolate_spline(self, points, image):
-        x_list = []
-        y_list = []
+    def interpolate_spline(self, points_r, points_l, image):
+        x_list_r = []
+        x_list_l = []
+        y_list_r = []
+        y_list_l = []
         spline_points = []
         spline_point_arr.points = []
 
-        for point in points:
-            x_list.append(point[0])
-            y_list.append(point[1])
+        for point in points_r:
+            x_list_r.append(point[0])
+            y_list_r.append(point[1])
 
-        if len(x_list) == 0:
+        for point in points_l:
+            x_list_l.append(point[0])
+            y_list_l.append(point[0])
+
+        if len(x_list) == 0 or len(y_list) == 0:
             return
 
-        X = np.asarray(x_list)
-        Y = np.asarray(y_list)
-        denom = X.dot(X) - X.mean() * X.sum()
-        m = (X.dot(Y) - Y.mean() * X.sum()) / denom
-        b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denom
-        predicted_y = m * X + b
-        predicted_line = np.array([X, predicted_y]).T
-        cv2.drawContours(image, [predicted_line.astype(int)], 0, (255, 0, 0), 4)
+        X_r = np.asarray(x_list_r)
+        Y_r = np.asarray(y_list_r)
+        denom = X_r.dot(X_r) - X_r.mean() * X_r.sum()
+        m = (X_r.dot(Y_r) - Y_r.mean() * X_r.sum()) / denom
+        b = (Y_r.mean() * X_r.dot(X_r) - X_r.mean() * X_r.dot(Y_r)) / denom
+        predicted_y_r = m * X_r + b
+        predicted_line_r = np.array([X_r, predicted_y_r]).T
+        cv2.drawContours(image, [predicted_line_r.astype(int)], 0, (255, 0, 0), 4)
 
-        alpha = np.linspace(0, len(predicted_line)-1, 10)
-        for value in alpha:
-            spline_points.append(predicted_line[int(value)])
-        for point in spline_points:
+        X_l = np.asarray(x_list_l)
+        Y_l = np.asarray(y_list_l)
+        denom = X_l.dot(X_l) - X_l.mean() * X_l.sum()
+        m = (X_l.dot(Y_l) - Y_l.mean() * X_l.sum()) / denom
+        b = (Y_l.mean() * X_l.dot(X_r) - X_l.mean() * X_l.dot(Y_l)) / denom
+        predicted_y_l = m * X_l + b
+        predicted_line_l = np.array([X_l, predicted_y_l]).T
+        cv2.drawContours(image, [predicted_line_l.astype(int)], 0, (255, 0, 0), 4)
+
+        alpha_r = np.linspace(0, len(predicted_line_r)-1, 10)
+        alpha_l = np.linspace(0, len(predicted_line_l)-1, 10)
+        for value in alpha_r:
             p1 = Point()
-            p1.x = point[0]
-            p1.y = point[1]
-            p1.z = 0
+            p1.x = predicted_line_r[int(value)][0]
+            p1.y = predicted_line_r[int(value)][1]
+            p1.z =0
             spline_point_arr.points.append(p1)
-            cv2.circle(image, (int(point[0]), int(point[1])), (10), (255, 0, 0), 8)
+            # spline_points.append(predicted_line_r[int(value)])
+        for value in alpha_l:
+            p1 = Point()
+            p1.x = predicted_line_r[int(value)][0]
+            p1.y = predicted_line_r[int(value)][1]
+            p1.z =0
+            spline_point_arr.points.append(p1)
+            # spline_points.append(predicted_line_l[int(value)])
+        # for point in spline_points:
+        #     p1 = Point()
+        #    p1.x = point[0]
+        #    p1.y = point[1]
+        #    p1.z = 0
+        #    spline_point_arr.points.append(p1)
+        #    cv2.circle(image, (int(point[0]), int(point[1])), (10), (255, 0, 0), 8)
 
     def detect(self, cv_image):
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        img = cv_image
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
         ret, thresh4 = cv2.threshold(blurred, 200, 255, cv2.THRESH_TOZERO)
         size = np.size(thresh4)
@@ -183,7 +212,7 @@ class Lines(object):
 
             self.interpolate_spline(right_points, cv_image)
             self.interpolate_spline(left_points, cv_image)
-            return cv_image
+        return cv_image
 
 
 def main(args):

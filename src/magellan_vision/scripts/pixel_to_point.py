@@ -28,10 +28,11 @@ class PubSubNode(object):
         cy = camera_info.P[6]
         fx = camera_info.P[0]
         fy = camera_info.P[5]
-        header = std_msgs.msg.Header()
-        header.stamp = rospy.Time.now()
-        header.frame_id = "camera_link"
-        point_arr.header = header
+        
+        point_arr = PointArray()
+        point_arr.header.stamp = rospy.Time.now()
+        point_arr.header.frame_id = "camera_link"
+
         try:
             self._depth_image = self._bridge.imgmsg_to_cv2(camera_depth)
 
@@ -42,9 +43,9 @@ class PubSubNode(object):
         if self._depth_image is not None:
             point_arr.points = []
             self._depth_array = np.array(self._depth_image, dtype=np.float32)
-            for pixel in spline_pixels:
+            for pixel in spline_pixels.points:
                 # TODO: Fix this rudimentary invalid pixel value checking
-                if(int(pixel.x) > 640 or int(pixel.y) > 480 or int(pixel.x) < 0 or int(pixel.y) < 0):
+                if(int(pixel.x) >= 640 or int(pixel.y) >= 480 or int(pixel.x) < 0 or int(pixel.y) < 0):
                     continue
                 # TODO: Get the mean (or median) of points in a BxB window around the point
                 depth = self._depth_array[int(pixel.y)][int(pixel.x)]
@@ -61,11 +62,10 @@ class PubSubNode(object):
 
 def main():
     rospy.init_node("pixel_to_point_node")
-    global point_arr
-    point_arr = PointArray()
-    PubSubNode()
-    while not rospy.is_shutdown():
-        rospy.spin()
+    
+    foo = PubSubNode()
+    
+    rospy.spin()
 
 
 if __name__ == '__main__':
