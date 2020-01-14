@@ -44,15 +44,18 @@ class PubSubNode(object):
             self._depth_array = np.array(self._depth_image, dtype=np.float32)
             for pixel in spline_pixels.points:
                 # TODO: Fix this rudimentary invalid pixel value checking
-                if(int(pixel.x) >= 640 or int(pixel.y) >= 480 or int(pixel.x) < 0 or int(pixel.y) < 0):
-                    continue
                 # TODO: Get the mean (or median) of points in a BxB window around the point
-                depth = self._depth_array[int(pixel.y)][int(pixel.x)]
+                depth_list = []
+                for x, y in zip(range(int(pixel.x-5), int(pixel.x+5)), range(int(pixel.y-5), int(pixel.y+5))):
+                    if(int(x) >= 640 or int(y) >= 480 or int(x) < 0 or int(y) < 0):
+                        continue
+                    depth_list.append(self._depth_array[int(y)][int(x)])
+                depth = np.asarray(depth_list).mean()
                 Px = (pixel.x-cx)*(depth)/fx
                 Py = (pixel.y-cy)*(depth)/fy
                 p1 = Point()
-                p1.x = Px
-                p1.y = Py
+                p1.x = Px * -1
+                p1.y = Py * -1
                 p1.z = 0
                 point_arr.points.append(p1)
 
@@ -62,7 +65,7 @@ class PubSubNode(object):
 def main():
     rospy.init_node("pixel_to_point_node")
 
-    foo = PubSubNode()
+    PubSubNode()
 
     rospy.spin()
 

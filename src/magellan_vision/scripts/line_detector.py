@@ -102,9 +102,21 @@ class Lines(object):
 
         return skel
 
-    def get_predicted_line(self, x_points, y_points, image):
-    	X = np.asarray(x_points)
-        Y = np.asarray(y_points)
+    def interpolate_spline(self, points, image):
+        x_list = []
+        y_list = []
+        spline_point_arr.points = []
+
+        for point in points:
+            x_list.append(point[0])
+            y_list.append(point[1])
+
+        if len(x_list) == 0:
+            return
+
+        X = np.asarray(x_list)
+        Y = np.asarray(y_list)
+
         denom = X.dot(X) - X.mean() * X.sum()
         m = (X.dot(Y) - Y.mean() * X.sum()) / denom
         b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denom
@@ -114,36 +126,14 @@ class Lines(object):
 
         alpha = np.linspace(0, len(predicted_line)-1, 10)
         for value in alpha:
-        	p1 = Point()
-        	p1.x = predicted_line_r[int(value)][0]
-        	p1.y = predicted_line_l[int(value)][1]
-        	p1.z = 0
-        	spline_point_arr.points.append(p1)
-
-    def interpolate_spline(self, points_r, points_l, image):
-        x_list_r = []
-        x_list_l = []
-        y_list_r = []
-        y_list_l = []
-        spline_point_arr.points = []
-
-        for point in points_r:
-            x_list_r.append(point[0])
-            y_list_r.append(point[1])
-
-        for point in points_l:
-            x_list_l.append(point[0])
-            y_list_l.append(point[1])
-
-        if len(x_list_r) == 0 or len(y_list_r) == 0 or len(x_list_l) or len(x_list_r):
-        	return
-
-        self.get_predicted_line(x_list_r, y_list_r, image)
-        self.get_predicted_line(x_list_l, y_list_l, image)
+            p1 = Point()
+            p1.x = predicted_line[int(value)][0]
+            p1.y = predicted_line[int(value)][1]
+            p1.z = 0
+            spline_point_arr.points.append(p1)
 
     def detect(self, cv_image):
-        img = cv_image
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
         ret, thresh4 = cv2.threshold(blurred, 200, 255, cv2.THRESH_TOZERO)
         size = np.size(thresh4)
@@ -188,7 +178,8 @@ class Lines(object):
                             cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
 
-            self.interpolate_spline(right_points, left_points, cv_image)
+            self.interpolate_spline(right_points, cv_image)
+            self.interpolate_spline(left_points, cv_image)
         return cv_image
 
 
