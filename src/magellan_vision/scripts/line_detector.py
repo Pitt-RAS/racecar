@@ -102,12 +102,29 @@ class Lines(object):
 
         return skel
 
+    def get_predicted_line(self, x_points, y_points, image):
+    	X = np.asarray(x_points)
+        Y = np.asarray(y_points)
+        denom = X.dot(X) - X.mean() * X.sum()
+        m = (X.dot(Y) - Y.mean() * X.sum()) / denom
+        b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denom
+        predicted_y = m * X + b
+        predicted_line = np.array([X, predicted_y]).T
+        cv2.drawContours(image, [predicted_line.astype(int)], 0, (255, 0, 0), 4)
+
+        alpha = np.linspace(0, len(predicted_line)-1, 10)
+        for value in alpha:
+        	p1 = Point()
+        	p1.x = predicted_line_r[int(value)][0]
+        	p1.y = predicted_line_l[int(value)][1]
+        	p1.z = 0
+        	spline_point_arr.points.append(p1)
+
     def interpolate_spline(self, points_r, points_l, image):
         x_list_r = []
         x_list_l = []
         y_list_r = []
         y_list_l = []
-        spline_points = []
         spline_point_arr.points = []
 
         for point in points_r:
@@ -116,52 +133,13 @@ class Lines(object):
 
         for point in points_l:
             x_list_l.append(point[0])
-            y_list_l.append(point[0])
+            y_list_l.append(point[1])
 
-        if len(x_list) == 0 or len(y_list) == 0:
-            return
+        if len(x_list_r) == 0 or len(y_list_r) == 0 or len(x_list_l) or len(x_list_r):
+        	return
 
-        X_r = np.asarray(x_list_r)
-        Y_r = np.asarray(y_list_r)
-        denom = X_r.dot(X_r) - X_r.mean() * X_r.sum()
-        m = (X_r.dot(Y_r) - Y_r.mean() * X_r.sum()) / denom
-        b = (Y_r.mean() * X_r.dot(X_r) - X_r.mean() * X_r.dot(Y_r)) / denom
-        predicted_y_r = m * X_r + b
-        predicted_line_r = np.array([X_r, predicted_y_r]).T
-        cv2.drawContours(image, [predicted_line_r.astype(int)], 0, (255, 0, 0), 4)
-
-        X_l = np.asarray(x_list_l)
-        Y_l = np.asarray(y_list_l)
-        denom = X_l.dot(X_l) - X_l.mean() * X_l.sum()
-        m = (X_l.dot(Y_l) - Y_l.mean() * X_l.sum()) / denom
-        b = (Y_l.mean() * X_l.dot(X_r) - X_l.mean() * X_l.dot(Y_l)) / denom
-        predicted_y_l = m * X_l + b
-        predicted_line_l = np.array([X_l, predicted_y_l]).T
-        cv2.drawContours(image, [predicted_line_l.astype(int)], 0, (255, 0, 0), 4)
-
-        alpha_r = np.linspace(0, len(predicted_line_r)-1, 10)
-        alpha_l = np.linspace(0, len(predicted_line_l)-1, 10)
-        for value in alpha_r:
-            p1 = Point()
-            p1.x = predicted_line_r[int(value)][0]
-            p1.y = predicted_line_r[int(value)][1]
-            p1.z =0
-            spline_point_arr.points.append(p1)
-            # spline_points.append(predicted_line_r[int(value)])
-        for value in alpha_l:
-            p1 = Point()
-            p1.x = predicted_line_r[int(value)][0]
-            p1.y = predicted_line_r[int(value)][1]
-            p1.z =0
-            spline_point_arr.points.append(p1)
-            # spline_points.append(predicted_line_l[int(value)])
-        # for point in spline_points:
-        #     p1 = Point()
-        #    p1.x = point[0]
-        #    p1.y = point[1]
-        #    p1.z = 0
-        #    spline_point_arr.points.append(p1)
-        #    cv2.circle(image, (int(point[0]), int(point[1])), (10), (255, 0, 0), 8)
+        self.get_predicted_line(x_list_r, y_list_r, image)
+        self.get_predicted_line(x_list_l, y_list_l, image)
 
     def detect(self, cv_image):
         img = cv_image
@@ -210,8 +188,7 @@ class Lines(object):
                             cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
                             cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
 
-            self.interpolate_spline(right_points, cv_image)
-            self.interpolate_spline(left_points, cv_image)
+            self.interpolate_spline(right_points, left_points, cv_image)
         return cv_image
 
 

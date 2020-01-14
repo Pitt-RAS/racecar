@@ -2,7 +2,6 @@
 
 import rospy
 import message_filters
-import std_msgs
 import numpy as np
 from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Point
@@ -28,7 +27,7 @@ class PubSubNode(object):
         cy = camera_info.P[6]
         fx = camera_info.P[0]
         fy = camera_info.P[5]
-        
+
         point_arr = PointArray()
         point_arr.header.stamp = rospy.Time.now()
         point_arr.header.frame_id = "camera_link"
@@ -62,9 +61,9 @@ class PubSubNode(object):
 
 def main():
     rospy.init_node("pixel_to_point_node")
-    
+
     foo = PubSubNode()
-    
+
     rospy.spin()
 
 
