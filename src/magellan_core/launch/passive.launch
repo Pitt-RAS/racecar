@@ -1,6 +1,5 @@
 <launch>
     <node pkg="tf2_ros" type="static_transform_publisher" name="imu_link_broadcaster" args="0 0 0 1.57 0 0 base_link imu" />
-
     <node pkg="magellan_core" type="viz_turning_radius.py" name="viz_turning_radius" />
 
     <!--<include file="$(find magellan_core)/launch/gps.launch" />-->
@@ -13,5 +12,8 @@
     <include file="$(find magellan_core)/launch/blob_maker.launch" />
     <include file="$(find magellan_core)/launch/continuous_path.launch" />
     <include file="$(find magellan_core)/launch/camera.launch" />
-	<include file="$(find magellan_core)/launch/line_detector.launch" />
+    <include file="$(find magellan_core)/launch/line_detector.launch" />
+    <include file="$(find magellan_core)/launch/pixel_to_point.launch" />
+
 </launch>
+

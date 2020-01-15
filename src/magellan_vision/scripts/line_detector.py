@@ -3,13 +3,8 @@
 import sys
 import math
 import threading
-
-
 import cv2
 import numpy as np
-
-
-# ROS imports
 import rospy
 import std_msgs.msg
 from sensor_msgs.msg import Image  # ROS Image Message
@@ -17,12 +12,9 @@ from geometry_msgs.msg import Point
 from magellan_core.msg import PointArray
 from cv_bridge import CvBridge, CvBridgeError  # Converts b/w OpenCV Image and ROS Image Message
 
-point_arr = PointArray()
-
 
 class PubSubNode(object):
     def __init__(self):
-        # TODO FIX THIS
         try:
             # Global Constant
             self._VERBOSE = rospy.get_param("verbose")
@@ -37,6 +29,7 @@ class PubSubNode(object):
         # topic where we publish
         self._image_pub = rospy.Publisher("/perception/color/image_processed", Image, queue_size=5)
         self._point_arr_pub = rospy.Publisher('/perception/detected_points', PointArray, queue_size=5)
+        self._spline_point_arr_pub = rospy.Publisher("/perception/spline_points", PointArray, queue_size=5)
         self._bridge = CvBridge()
 
         # subscribed Topic
@@ -47,32 +40,32 @@ class PubSubNode(object):
         with self._lock:
             header = std_msgs.msg.Header()
             header.stamp = rospy.Time.now()
-            point_arr.clear()
+            header.frame_id = "camera_link"
             point_arr.header = header
-            point_arr.points = []
+            spline_point_arr.header = header
+
             # Line detection
             if self._image is not None:
                 image_np = self._lines_object.detect(self._image)
-
                 # conversion back to Image
                 try:
-                    ros_msg = self._bridge.cv2_to_imgmsg(image_np)
-                except CvBridgeError:
-                    rospy.logerr('Could not convert image')
+                    ros_msg = self._bridge.cv2_to_imgmsg(image_np, encoding="bgr8")
+                except (CvBridgeError, TypeError) as e:
+                    rospy.logwarn('Could not convert image from cv2 to imgmsg. Error: {}'.format(e))
                     return
-
                 # Publish Processed Image amnd Points
                 self._image_pub.publish(ros_msg)
+                self._point_arr_pub.publish(point_arr)
+                self._spline_point_arr_pub.publish(spline_point_arr)
 
     '''Callback function of subscribed topic.
     Here images get converted and features detected and published'''
-
     def _callback(self, ros_data):
         with self._lock:
             try:
                 self._image = self._bridge.imgmsg_to_cv2(ros_data, "bgr8")
-            except CvBridgeError:
-                rospy.logerr('Could not convert image')
+            except (CvBridgeError, TypeError) as e:
+                rospy.logerr('Could not convert image from imgmsg to cv2. Error: {}'.format(e))
                 return
 
 
@@ -109,6 +102,36 @@ class Lines(object):
 
         return skel
 
+    def interpolate_spline(self, points, image):
+        x_list = []
+        y_list = []
+        spline_point_arr.points = []
+
+        for point in points:
+            x_list.append(point[0])
+            y_list.append(point[1])
+
+        if len(x_list) == 0:
+            return
+
+        X = np.asarray(x_list)
+        Y = np.asarray(y_list)
+
+        denom = X.dot(X) - X.mean() * X.sum()
+        m = (X.dot(Y) - Y.mean() * X.sum()) / denom
+        b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denom
+        predicted_y = m * X + b
+        predicted_line = np.array([X, predicted_y]).T
+        cv2.drawContours(image, [predicted_line.astype(int)], 0, (255, 0, 0), 4)
+
+        alpha = np.linspace(0, len(predicted_line)-1, 10)
+        for value in alpha:
+            p1 = Point()
+            p1.x = predicted_line[int(value)][0]
+            p1.y = predicted_line[int(value)][1]
+            p1.z = 0
+            spline_point_arr.points.append(p1)
+
     def detect(self, cv_image):
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
@@ -125,30 +148,38 @@ class Lines(object):
                                  lines=np.array([]), minLineLength=self._MINLINELENGTH, maxLineGap=self._MAXLINEGAP)
 
         if linesP is not None:
+            point_arr.points = []
+            right_points = []
+            left_points = []
             for line in linesP:
                 for x1, y1, x2, y2 in line:
-                    slope = (y2 - y1) / (x2 - x1)
-                    p1 = Point()
-                    p2 = Point()
-                    p1.x = x1
-                    p1.y = y1
-                    p1.z = 0
-                    point_arr.extend(p1)
-                    p2.x = x2
-                    p2.y = y2
-                    p2.z = 0
-                    point_arr.extend(p2)
-                    # <-- Calculating the slope.
-                    if math.fabs(slope) < .5:
-                        # <-- Only consider extreme slope
-                        continue
-                    if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
-                        # <-- If the slope is negative, left group
-                        cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
-                        cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
-                    else:  # <-- Otherwise, right group.
-                        cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
-                        cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
+                    if(0 < x1 < 640 and 0 < x2 < 640 and 0 < y1 < 480 and 0 < y2 < 480):
+                        slope = (y2 - y1) / (x2 - x1)
+                        p1 = Point()
+                        p2 = Point()
+                        p1.x = x1
+                        p1.y = y1
+                        p1.z = 0
+                        point_arr.points.append(p1)
+                        p2.x = x2
+                        p2.y = y2
+                        p2.z = 0
+                        point_arr.points.append(p2)
+                        if math.fabs(slope) < .5:
+                            continue
+                        if x1 < cv_image.shape[1]/2 and x2 < cv_image.shape[1]/2:
+                            left_points.append([x1, y1])
+                            left_points.append([x2, y2])
+                            cv2.circle(cv_image, (x1, y1), (5), (0, 0, 255), 3)
+                            cv2.circle(cv_image, (x2, y2), (5), (0, 0, 255), 3)
+                        else:
+                            right_points.append([x1, y1])
+                            right_points.append([x2, y2])
+                            cv2.circle(cv_image, (x1, y1), (5), (0, 255, 0), 3)
+                            cv2.circle(cv_image, (x2, y2), (5), (0, 255, 0), 3)
+
+            self.interpolate_spline(right_points, cv_image)
+            self.interpolate_spline(left_points, cv_image)
         return cv_image
 
 
@@ -157,6 +188,10 @@ def main(args):
     node_ = PubSubNode()
     r = rospy.get_param("rate")
     rate = rospy.Rate(r)
+    global point_arr
+    point_arr = PointArray()
+    global spline_point_arr
+    spline_point_arr = PointArray()
     try:
         while not rospy.is_shutdown():
             node_.run_detects()
