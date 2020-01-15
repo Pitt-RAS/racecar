@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="magellan_vision" type="pixel_to_point.py" name="pixel_to_point_node" >
+    </node>
+</launch>

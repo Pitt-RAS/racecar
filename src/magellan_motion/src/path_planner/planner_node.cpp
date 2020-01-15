@@ -55,11 +55,14 @@ int main(int argc, char** argv)
     Server server(nh, "planner_request", false);
     server.start();
 
+    tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
+
     ros::Publisher plan_pub = nh.advertise<nav_msgs::Path>("path", 1000);
 
     // construct planner
     double resolution = .01; // 10cm
-    MagellanPlanner::PathPlanner planner(nh, resolution);
+    MagellanPlanner::PathPlanner planner(private_nh, resolution);
 
     // Cache the time
     ros::Time last_time = ros::Time::now();
@@ -96,13 +99,44 @@ int main(int argc, char** argv)
                 goal_ = server.acceptNewGoal();
                 ROS_INFO("New goal accepted by planner");
 
-                Path plan = planner.plan(goal_->goal);
-                plan_pub.publish(plan);
+                bool success = false;
+
+                geometry_msgs::PoseStamped goalPointTransformed;
+                geometry_msgs::PoseStamped goalPoint;
 
                 magellan_motion::PlannerRequestResult result_;
 
-                result_.success = true;
-                server.setSucceeded(result_);
+                try{
+                    auto transform = tfBuffer.lookupTransform("base_link",
+                                                              goal_->header.frame_id,
+                                                              ros::Time::now(),
+                                                              ros::Duration(1.0));
+
+                    goalPoint.pose.position = goal_->goal;
+
+                    tf2::doTransform(goalPoint, goalPointTransformed, transform);
+
+                    success = true;
+                } catch (tf2::TransformException& ex) {
+                    ROS_ERROR("PathPlanner error in lookupTransform");
+                    ROS_ERROR("%s",ex.what());
+                    result_.success = false;
+                    server.setSucceeded(result_);
+                }
+
+                if (success) {
+                    Path plan = planner.plan(goalPointTransformed.pose.position, tfBuffer);
+
+                    if ( plan.poses.size() >= 0 ) {
+                        plan_pub.publish(plan);
+                        result_.success = true;
+                    } else {
+                        result_.success = false;
+                    }
+
+                    server.setSucceeded(result_);
+                }
+
             }
         }
 

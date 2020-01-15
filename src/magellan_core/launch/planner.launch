@@ -1,5 +1,8 @@
 <launch>
     <node pkg="magellan_motion" type="path_planner_node" name="path_planner">
+    	<param name="float_precision" value="100" />
+    	<param name="float_precision_divide" value=".01" />
+    	<param name="transform_frame" value="odom" />
     </node>
 
     <node pkg="magellan_gameplay" type="game.py" name="game">

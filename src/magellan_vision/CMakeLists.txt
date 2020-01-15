@@ -15,6 +15,7 @@ sensor_msgs
 rospy
 std_msgs
 roslib
+magellan_core
 )
 
 find_package(OpenCV)
@@ -57,7 +58,7 @@ find_package(OpenCV)
 #   FILES
 #   Message1.msg
 #   Message2.msg
-# )
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -143,6 +144,9 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/magellan_vision_node.cpp)
 add_executable(blob_maker_node src/blob_maker/blob_maker_node.cc src/blob_maker/blob_maker.cc)
 target_link_libraries(blob_maker_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(fast_blob_maker src/fastblobs/fast_blob_maker.cpp src/fastblobs/grid_expander.cpp)
+target_link_libraries(fast_blob_maker ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

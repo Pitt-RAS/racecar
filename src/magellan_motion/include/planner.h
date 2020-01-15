@@ -19,6 +19,10 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
 
+#include <tf2_ros/transform_listener.h>
+#include <tf2/utils.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 using geometry_msgs::Point;
 using geometry_msgs::PoseStamped;
 using nav_msgs::Path;
@@ -29,8 +33,8 @@ struct Successor {
     bool closed;
     double gCost;     // g* value
     double hCost;     // H value
-    double xPose;
-    double yPose;
+    int xPose;
+    int yPose;
     int key;
     std::shared_ptr<Successor> parent;
 };
@@ -39,13 +43,13 @@ struct Successor {
 class PathPlanner {
 public:
     PathPlanner(ros::NodeHandle& nh, double resolution);
-    int getKey(double x, double y);
-    Path getPlan(std::shared_ptr<Successor> goalNode);
-    Path plan(Point goal);
+    int getKey(int x, int y);
+    Path getPlan(std::shared_ptr<Successor> goalNode, tf2_ros::Buffer& tfBuffer);
+    Path plan(Point goal, tf2_ros::Buffer& tfBuffer);
 private:
-    bool isFree(double x, double y);
-    double getHeuristic(double x, double y);
-    bool isGoal(double x, double y);
+    bool isFree(int x, int y);
+    double getHeuristic(int x, int y);
+    bool isGoal(int x, int y);
     void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
     std::unordered_map<int, std::shared_ptr<Successor> > nodes;
@@ -66,13 +70,16 @@ private:
 
     ros::Subscriber map_sub;
 
-    double startX;
-    double startY;
-    double goalX;
-    double goalY;
+    int startX;
+    int startY;
+    int goalX;
+    int goalY;
     double _resolution;
-    double mapSize; // num of cells in graph
     bool _has_map;
+
+    int floatPrecision;
+    double floatPrecisionDivide;
+    std::string transformFrame;
 };
 }
 #endif // MAGELLAN_PLANNER_H
