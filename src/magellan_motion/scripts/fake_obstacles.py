@@ -2,6 +2,8 @@
 
 import rospy
 import numpy as np
+import sys
+import random
 
 from nav_msgs.msg import OccupancyGrid
 
@@ -26,6 +28,21 @@ if __name__ == '__main__':
     y_bounds_free_upper = 5/resolution
 
     map_im = np.zeros(numX*numY, dtype=int)
+
+    if '-s' in sys.argv:
+    	print("straighaway")
+
+    if '-m' in sys.argv:
+    	right = random.getrandbits(1)
+    	if right==1: #right line is missing
+    		print("right")
+    	else: #left line is missing
+    		print("left")
+
+    	print("missing line")
+
+    if '-c' in sys.argv:
+    	print("curve")
 
     for y in range(0, numY):
         for x in range(0, numX):
