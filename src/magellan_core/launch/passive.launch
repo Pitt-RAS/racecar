@@ -11,9 +11,9 @@
     <!--<include file="$(find magellan_core)/launch/obstacle_avoidance.launch" />-->
     <include file="$(find magellan_core)/launch/blob_maker.launch" />
     <include file="$(find magellan_core)/launch/continuous_path.launch" />
-    <include file="$(find magellan_core)/launch/camera.launch" />
+    <!--include file="$(find magellan_core)/launch/camera.launch" />-->
     <include file="$(find magellan_core)/launch/line_detector.launch" />
     <include file="$(find magellan_core)/launch/pixel_to_point.launch" />
-
+    <include file="$(find magellan_core)/launch/occupancy_grid.launch" />
 </launch>
 

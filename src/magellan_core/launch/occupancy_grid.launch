@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="magellan_vision" type="occupancy_grid.py" name="occupancy_grid_node">
+	</node>
+</launch>
