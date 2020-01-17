@@ -1,4 +1,8 @@
 <launch>
 	<node pkg="magellan_vision" type="occupancy_grid.py" name="occupancy_grid_node">
+		<param name="occupancy_rate" type="int" value="5"/>
+		<param name="grid_resolution" type="float" value="0.01" />
+		<param name="grid_width" type="int" value="500"/>
+		<param name="grid_height" type="int" value="500" />
 	</node>
 </launch>
