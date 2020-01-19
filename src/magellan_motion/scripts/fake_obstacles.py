@@ -19,6 +19,22 @@ if __name__ == '__main__':
     numX = int(x_meters/resolution)
     numY = int(y_meters/resolution)
 
+    if '-s' in sys.argv:
+        print("straighaway")
+
+    if '-m' in sys.argv:
+        right = random.getrandbits(1)
+        if right == 1:  # right line is missing
+            print("right")
+        else:  # left line is missing
+            print("left")
+        
+        print("missing line")
+
+    if '-c' in sys.argv:
+        if '-s' in sys.argv:
+            print("straighaway")
+
     x_bounds_lower = rospy.get_param("~obst_start_x")/resolution
     x_bounds_upper = rospy.get_param("~obst_end_x")/resolution
 
