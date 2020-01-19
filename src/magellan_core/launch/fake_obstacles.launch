@@ -1,0 +1,9 @@
+
+
+<launch> 
+    <node name="fake_obstacle" pkg="magellan_motion" type="fake_obstacles.py">
+        <param name="x_meters" type="double" value="10.0" />
+        <param name="y_meters" value="10" />
+        <param name="resolution" value=".01" />
+    </node>
+</launch>

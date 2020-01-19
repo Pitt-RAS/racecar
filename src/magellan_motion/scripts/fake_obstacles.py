@@ -8,14 +8,34 @@ import random
 from nav_msgs.msg import OccupancyGrid
 
 if __name__ == '__main__':
-    rospy.init_node('fake_obstalces')
+    rospy.init_node('fake_obstacle')
 
     map_pub = rospy.Publisher('/grid', OccupancyGrid, queue_size=10)
     rate_ = rospy.Rate(5)
 
-    resolution = 0.01
-    numX = 1000
-    numY = 1000
+    resolution = 1.0
+    x_meters =1
+    y_meters=1
+
+    print(x_meters)
+
+    if rospy.has_param('~x_meters'):
+    	x_meters = rospy.get_param('/x_meters')
+    else:
+    	print("x_meters does not exist")
+
+    if rospy.has_param('y_meters'):
+    	y_meters = rospy.get_param('y_meters')
+    else:
+    	print("y_meters does not exist")
+
+    if rospy.has_param('~resolution'):
+    	resolution = rospy.get_param('~resolution')
+    else:
+    	print("resolution does not exist")
+
+    numX=int(x_meters/resolution)
+    numY=int(y_meters/resolution)
 
     x_bounds_lower = 600
     x_bounds_upper = 700
