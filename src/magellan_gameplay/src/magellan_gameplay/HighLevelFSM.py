@@ -1,38 +1,23 @@
+#!/usr/bin/env python
+
 # HighLevelFSM.py
 # Author: Thomas Detlefsen
-# Date: 9/13/2020
+# Last Update: 9/21/2020
 
-# Controls
-# [1] - Phy_Kill
-# [2] - Soft_Kill
-# [3] - Exit_Pit
-# [4] - Start_Warmup
-# [5] - Green
-# [6] - Yellow
-# [7] - Blue
-# [8] - Quali_Green
-# [9] - Coord_Stop
-# [0] - Comm_Stop
-# [q] - End_Race
-# [w] - Disq
-# [e] - is_vel_zero
-# [r] - Returned_to_Pit
-# [esc/ctrl-c] - Quit Script
+# Topic Name: FSM
+# Node Name: HighLevelFSM
+# Message Type: std_msgs/String
 
 # Imports
 from enum import Enum
-from pynput import keyboard
-import time
+import rospy
+from std_msgs.msg import String
 
 # Class to describe racecar FSM
 class racecarFSM:
 
 	# Initialize car attributes
 	def __init__(self):
-
-		# Start listening for keypress
-		self.key_listener = keyboard.Listener(on_press=self.on_press)
-		self.key_listener.start()
 		
 		# Initialize State as off
 		self.state = state.OFF
@@ -58,86 +43,83 @@ class racecarFSM:
 		self.Returned_to_pit = False
 
 	# Press response
-	def on_press(self, key):
+	def callback(self, msg):
 
-		# Format keyname
-		keyname = str(key).strip('u\'')	
-
-		# [1] Phy_Kill
-		if keyname == '1':
+		# Phy_Kill
+		if msg.data == "Phy_Kill":
 			if self.state == state.OFF or self.state == state.SLEEP \
 			or self.state == state.ON:				
 				self.Phy_Kill = not self.Phy_Kill
 				self.update()
-		# [2] Soft_Kill
-		elif keyname == '2':
+		# Soft_Kill
+		elif msg.data == "Soft_Kill":
 			if self.state == state.OFF or self.state == state.SLEEP \
 			or self.state == state.ON:			
 				self.Soft_Kill = not self.Soft_Kill
 				self.update()
-		# [3] Exit_Pit
-		elif keyname == '3':
+		# Exit_Pit
+		elif msg.data == "Exit_Pit":
 			if self.state == state.ON:
 				self.Exit_Pit = True
 				self.update()
-		# [4] start_warmup
-		elif keyname == '4':
+		# start_warmup
+		elif msg.data == "start_warmup":
 			if self.state == state.EXITING_PIT or self.state == state.EXHIBITING_CAUTION:
 				self.start_warmup = True
 				self.Yellow = False
 				self.Green = False
 				self.update()
-		# [5] Green
-		elif keyname == '5':
+		# Green
+		elif msg.data == "Green":
 			if self.state == state.WARMUP:
 				self.Green = True
 				self.update()
-		# [6] Yellow
-		elif keyname == '6':
+		# Yellow
+		elif msg.data == "Yellow":
 			if self.state == state.NOMINAL_RACING or self.state == state.WARMUP \
 			or (self.state == state.EXHIBITING_CAUTION and self.Green == True):
 				self.Yellow = not self.Yellow
 				self.update()
-		# [7] Blue
-		elif keyname == '7':
+		# Blue
+		elif msg.data == "Blue":
 			if self.state == state.NOMINAL_RACING or self.state == state.ALLOWING_OVERTAKE:
 				self.Blue = not self.Blue
 				self.update()
-		# [8] Quali_Green
-		elif keyname == '8':
+		# Quali_Green
+		elif msg.data == "Quali_Green":
 			if self.state == state.WARMUP:
 				self.Quali_Green = True
 				self.update()
-		# [9] coord_stop
-		elif keyname == '9':
+		# coord_stop
+		elif msg.data == "coord_stop":
 			if self.state == state.EXITING_PIT or self.state == state.WARMUP \
  			or self.state == state.NOMINAL_QUALIFYING or self.state == state.NOMINAL_RACING \
 			or self.state == state.EXHIBITING_CAUTION or self.state == state.ALLOWING_OVERTAKE:
 				self.coord_stop = True
 				self.update()
-		# [0] Comm_Stop
-		elif keyname == '0':
+		# Comm_Stop
+		elif msg.data == "Comm_Stop":
 			if self.state == state.EXITING_PIT or self.state == state.WARMUP \
  			or self.state == state.NOMINAL_QUALIFYING or self.state == state.NOMINAL_RACING \
 			or self.state == state.EXHIBITING_CAUTION or self.state == state.ALLOWING_OVERTAKE:
 				self.Comm_Stop = True
 				self.update()
-		# [q] end_race
-		elif keyname == 'q':
+		# end_race
+		elif msg.data == "end_race":
 			if self.state == state.EXITING_PIT or self.state == state.WARMUP \
  			or self.state == state.NOMINAL_QUALIFYING or self.state == state.NOMINAL_RACING \
 			or self.state == state.EXHIBITING_CAUTION or self.state == state.ALLOWING_OVERTAKE:
 				self.end_race = True
 				self.update()
-		# [w] disq
-		elif keyname == 'w':
+		# disq
+		elif msg.data == "disq":
 			if self.state == state.EXITING_PIT or self.state == state.WARMUP \
  			or self.state == state.NOMINAL_QUALIFYING or self.state == state.NOMINAL_RACING \
 			or self.state == state.EXHIBITING_CAUTION or self.state == state.ALLOWING_OVERTAKE:
 				self.disq = True
 				self.update()
-		# [e] is_vel_zero
-		elif keyname == 'e':
+		# is_vel_zero
+		elif msg.data == "is_vel_zero":
 			if self.state == state.ENTERING_PIT or self.state == state.EXECUTING_COORD_STOP:
 				self.is_vel_zero = True
 				self.coord_stop = False
@@ -146,8 +128,8 @@ class racecarFSM:
 					self.disq = False
 					self.end_race = False
 				self.update()
-		# [r] Returned_to_pit
-		elif keyname == 'r':
+		# Returned_to_pit
+		elif msg.data == "Returned_to_pit":
 			if self.state == state.ENTERING_PIT or self.state == state.EXECUTING_COORD_STOP:
 				self.is_vel_zero = True
 				self.coord_stop = False
@@ -156,8 +138,8 @@ class racecarFSM:
 					self.disq = False
 					self.end_race = False
 				self.update()
-		# [esc] Quit
-		elif keyname == 'esc':
+		# quit
+		elif msg.data == 'quit':
 			print("\nExiting FSM")
 			self.run = False
 
@@ -253,11 +235,9 @@ if __name__ == '__main__':
 	# Initialize Racecar
 	racecar = racecarFSM()
 
-	try:
-	# Dead Loop
-		while racecar.run:
-			time.sleep(1)
+	# Initialize Node and start listening
+	rospy.init_node('HighLevelFSM')
+	rospy.Subscriber('FSM', String, racecar.callback)
 
-	except KeyboardInterrupt:
-		print("\nExiting FSM")
-		exit(0)
+	# Dead loop
+	rospy.spin()
